@@ -1,11 +1,11 @@
 import { eq, asc, desc, like, and, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { InsertUser, users, aiNews, favorites, searchHistory, readHistory, aiEvents, rssSources, systemConfig } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _pool: Pool | null = null;
+let _pool: mysql.Pool | null = null;
 let _connecting = false;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
@@ -36,24 +36,21 @@ export async function getDb() {
 
   _connecting = true;
   try {
-    console.log("[DB] Creating PostgreSQL pool...");
+    console.log("[DB] Creating MySQL pool...");
     
-    _pool = new Pool({
-      connectionString: dbUrl,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-      max: 5,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+    _pool = mysql.createPool({
+      uri: dbUrl,
+      waitForConnections: true,
+      connectionLimit: 5,
+      queueLimit: 0,
     });
 
     // Test connection
     console.log("[DB] Testing connection...");
-    const client = await _pool.connect();
-    const result = await client.query('SELECT NOW()');
-    client.release();
-    console.log("[DB] Connection test successful:", result.rows[0]);
+    const connection = await _pool.getConnection();
+    const result = await connection.query('SELECT NOW()');
+    connection.release();
+    console.log("[DB] Connection test successful");
     
     // Create drizzle instance
     _db = drizzle(_pool);
