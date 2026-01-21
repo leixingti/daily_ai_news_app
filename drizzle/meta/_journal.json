@@ -22,6 +22,20 @@
       "when": 1768966422101,
       "tag": "0002_wooden_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1769004107327,
+      "tag": "0003_clear_galactus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1769033750018,
+      "tag": "0004_jazzy_living_tribunal",
+      "breakpoints": true
     }
   ]
 }
