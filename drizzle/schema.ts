@@ -1,4 +1,5 @@
-import { integer, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+const integer = int;
 
 /**
  * Enum definitions
