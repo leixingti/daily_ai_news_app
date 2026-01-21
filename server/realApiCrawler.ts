@@ -7,6 +7,7 @@ import axios from "axios";
 import { getDb } from "./db";
 import { aiEvents } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { ENV } from "./_core/env";
 
 interface RealEvent {
   name: string;
@@ -27,24 +28,31 @@ const API_TIMEOUT = 10000; // 10 seconds timeout
 
 /**
  * 从 IT 之家爬取会议信息
- * IT 之家没有公开的会议 API，这里使用网页爬虫方式
  */
 async function fetchFromITHome(): Promise<RealEvent[]> {
   try {
     console.log("[RealApiCrawler] Fetching from IT Home...");
     
-    // IT 之家的新闻 API 端点（示例）
-    // 实际上需要根据 IT 之家的实际 API 文档调整
-    const response = await axios.get("https://www.ithome.com/api/events", {
+    if (!ENV.itHomeApiUrl) {
+      console.warn("[RealApiCrawler] IT Home API URL not configured");
+      return [];
+    }
+    
+    const headers: any = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    };
+    
+    if (ENV.itHomeApiKey) {
+      headers["Authorization"] = `Bearer ${ENV.itHomeApiKey}`;
+    }
+    
+    const response = await axios.get(`${ENV.itHomeApiUrl}/events`, {
       timeout: API_TIMEOUT,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
+      headers,
     });
 
     const events: RealEvent[] = [];
     
-    // 解析响应数据（根据实际 API 结构调整）
     if (response.data && Array.isArray(response.data.data)) {
       response.data.data.forEach((item: any) => {
         if (item.type === "event" || item.type === "conference") {
@@ -76,28 +84,36 @@ async function fetchFromITHome(): Promise<RealEvent[]> {
 
 /**
  * 从 36Kr 爬取会议信息
- * 36Kr 提供了活动/会议相关的 API
  */
 async function fetchFrom36Kr(): Promise<RealEvent[]> {
   try {
     console.log("[RealApiCrawler] Fetching from 36Kr...");
     
-    // 36Kr 的活动 API 端点
-    const response = await axios.get("https://api.36kr.com/events", {
+    if (!ENV.kr36ApiUrl) {
+      console.warn("[RealApiCrawler] 36Kr API URL not configured");
+      return [];
+    }
+    
+    const headers: any = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    };
+    
+    if (ENV.kr36ApiKey) {
+      headers["Authorization"] = `Bearer ${ENV.kr36ApiKey}`;
+    }
+    
+    const response = await axios.get(`${ENV.kr36ApiUrl}/events`, {
       timeout: API_TIMEOUT,
       params: {
         category: "ai",
         status: "upcoming",
         limit: 50,
       },
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
+      headers,
     });
 
     const events: RealEvent[] = [];
     
-    // 解析响应数据
     if (response.data && Array.isArray(response.data.data)) {
       response.data.data.forEach((item: any) => {
         events.push({
@@ -126,7 +142,7 @@ async function fetchFrom36Kr(): Promise<RealEvent[]> {
 }
 
 /**
- * 从会议官网爬取信息（通过 RSS 源）
+ * 从会议官网爬取信息（通过 API）
  */
 async function fetchFromConferenceWebsites(): Promise<RealEvent[]> {
   try {
@@ -134,31 +150,31 @@ async function fetchFromConferenceWebsites(): Promise<RealEvent[]> {
     
     const events: RealEvent[] = [];
     
-    // 主要 AI 会议官网的 RSS 源或 API
+    // 主要 AI 会议官网的 API
     const conferenceUrls = [
       {
         name: "NeurIPS",
-        url: "https://neurips.cc/api/events",
+        url: `${ENV.neuripsApiUrl}/events`,
         type: "api",
       },
       {
         name: "ICML",
-        url: "https://icml.cc/api/events",
+        url: `${ENV.icmlApiUrl}/events`,
         type: "api",
       },
       {
         name: "CVPR",
-        url: "https://cvpr2026.thecvf.com/api/events",
+        url: `${ENV.cvprApiUrl}/events`,
         type: "api",
       },
       {
         name: "AAAI",
-        url: "https://aaai.org/api/conferences",
+        url: `${ENV.aaaiApiUrl}/conferences`,
         type: "api",
       },
       {
         name: "ACL",
-        url: "https://aclweb.org/api/events",
+        url: `${ENV.aclApiUrl}/events`,
         type: "api",
       },
     ];
