@@ -1,61 +1,75 @@
 import { eq, asc, desc, like, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
+import { Pool } from "pg";
 import { InsertUser, users, aiNews, favorites, searchHistory, readHistory, aiEvents, rssSources, systemConfig } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: Pool | null = null;
 let _connecting = false;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (_db) {
-    console.log("[Database] Using cached connection");
     return _db;
   }
   
   const dbUrl = process.env.DATABASE_URL;
-  console.log("[Database] getDb() called, DATABASE_URL:", dbUrl ? "SET (" + dbUrl.substring(0, 30) + "...)" : "NOT SET");
+  console.log("[DB] getDb() called");
+  console.log("[DB] DATABASE_URL exists:", !!dbUrl);
   
   if (!dbUrl) {
-    console.error("[Database] DATABASE_URL not set");
+    console.error("[DB] DATABASE_URL environment variable not set");
     return null;
   }
 
   // Prevent multiple concurrent connection attempts
   if (_connecting) {
-    console.log("[Database] Already connecting, waiting...");
+    console.log("[DB] Connection in progress, waiting...");
     let attempts = 0;
-    while (!_db && _connecting && attempts < 50) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    while (!_db && _connecting && attempts < 100) {
+      await new Promise(resolve => setTimeout(resolve, 50));
       attempts++;
     }
-    console.log("[Database] Finished waiting, returning:", _db ? "connected" : "null");
     return _db;
   }
 
   _connecting = true;
   try {
-    console.log("[Database] Creating connection pool...");
-    const client = new pg.Pool({
+    console.log("[DB] Creating PostgreSQL pool...");
+    
+    _pool = new Pool({
       connectionString: dbUrl,
-      ssl: { rejectUnauthorized: false },
-      max: 10,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      max: 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
     });
+
+    // Test connection
+    console.log("[DB] Testing connection...");
+    const client = await _pool.connect();
+    const result = await client.query('SELECT NOW()');
+    client.release();
+    console.log("[DB] Connection test successful:", result.rows[0]);
     
-    console.log("[Database] Testing connection with SELECT 1...");
-    const testResult = await client.query('SELECT 1');
-    console.log("[Database] Connection test successful:", testResult.rows);
+    // Create drizzle instance
+    _db = drizzle(_pool);
+    console.log("[DB] Drizzle instance created successfully");
     
-    _db = drizzle(client);
-    console.log("[Database] Drizzle instance created successfully");
   } catch (error) {
-    console.error("[Database] Failed to connect:", error instanceof Error ? error.message : String(error));
-    console.error("[Database] Full error:", error);
+    console.error("[DB] Failed to connect:", error instanceof Error ? error.message : String(error));
+    if (error instanceof Error) {
+      console.error("[DB] Stack:", error.stack);
+    }
     _db = null;
+    _pool = null;
   } finally {
     _connecting = false;
   }
+  
   return _db;
 }
 
@@ -66,7 +80,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
+    console.warn("[DB] Cannot upsert user: database not available");
     return;
   }
 
@@ -109,18 +123,14 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    // PostgreSQL upsert using onConflictDoUpdate
-    const query = db.insert(users).values(values);
-    // For PostgreSQL, we need to use raw SQL or handle the conflict differently
-    // Since this is a user upsert, we'll first try to update, then insert if not found
     const existing = await db.select().from(users).where(eq(users.openId, user.openId)).limit(1);
     if (existing.length > 0) {
       await db.update(users).set(updateSet).where(eq(users.openId, user.openId));
     } else {
-      await query;
+      await db.insert(users).values(values);
     }
   } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
+    console.error("[DB] Failed to upsert user:", error);
     throw error;
   }
 }
@@ -134,7 +144,7 @@ export async function getAiNewsList(input: {
 }) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get news list: database not available");
+    console.warn("[DB] Cannot get news list: database not available");
     return [];
   }
 
@@ -168,7 +178,7 @@ export async function getAiNewsList(input: {
 
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get news list:", error);
+    console.error("[DB] Failed to get news list:", error);
     return [];
   }
 }
@@ -176,7 +186,7 @@ export async function getAiNewsList(input: {
 export async function getAiNewsById(id: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get news: database not available");
+    console.warn("[DB] Cannot get news: database not available");
     return null;
   }
 
@@ -184,7 +194,7 @@ export async function getAiNewsById(id: number) {
     const result = await db.select().from(aiNews).where(eq(aiNews.id, id)).limit(1);
     return result[0] || null;
   } catch (error) {
-    console.error("[Database] Failed to get news:", error);
+    console.error("[DB] Failed to get news:", error);
     return null;
   }
 }
@@ -192,7 +202,7 @@ export async function getAiNewsById(id: number) {
 export async function getNewsByCategory() {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get news by category: database not available");
+    console.warn("[DB] Cannot get news by category: database not available");
     return [];
   }
 
@@ -207,7 +217,7 @@ export async function getNewsByCategory() {
 
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get news by category:", error);
+    console.error("[DB] Failed to get news by category:", error);
     return [];
   }
 }
@@ -215,7 +225,7 @@ export async function getNewsByCategory() {
 export async function getNewsByRegion() {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get news by region: database not available");
+    console.warn("[DB] Cannot get news by region: database not available");
     return [];
   }
 
@@ -230,7 +240,7 @@ export async function getNewsByRegion() {
 
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get news by region:", error);
+    console.error("[DB] Failed to get news by region:", error);
     return [];
   }
 }
@@ -243,7 +253,7 @@ export async function getEventsList(input: {
 }) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get events list: database not available");
+    console.warn("[DB] Cannot get events list: database not available");
     return [];
   }
 
@@ -274,7 +284,7 @@ export async function getEventsList(input: {
 
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get events list:", error);
+    console.error("[DB] Failed to get events list:", error);
     return [];
   }
 }
@@ -282,7 +292,7 @@ export async function getEventsList(input: {
 export async function getAiEventById(id: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get event: database not available");
+    console.warn("[DB] Cannot get event: database not available");
     return null;
   }
 
@@ -290,7 +300,7 @@ export async function getAiEventById(id: number) {
     const result = await db.select().from(aiEvents).where(eq(aiEvents.id, id)).limit(1);
     return result[0] || null;
   } catch (error) {
-    console.error("[Database] Failed to get event:", error);
+    console.error("[DB] Failed to get event:", error);
     return null;
   }
 }
@@ -300,12 +310,11 @@ function or(...conditions: any[]) {
   return sql`(${sql.join(conditions, sql` OR `)})`
 }
 
-
 // RSS Sources Management
 export async function getAllRssSources() {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get RSS sources: database not available");
+    console.warn("[DB] Cannot get RSS sources: database not available");
     return [];
   }
 
@@ -313,7 +322,7 @@ export async function getAllRssSources() {
     const result = await db.select().from(rssSources).orderBy(asc(rssSources.createdAt));
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get RSS sources:", error);
+    console.error("[DB] Failed to get RSS sources:", error);
     return [];
   }
 }
@@ -326,7 +335,7 @@ export async function insertRssSource(source: {
 }) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot insert RSS source: database not available");
+    console.warn("[DB] Cannot insert RSS source: database not available");
     return false;
   }
 
@@ -340,7 +349,7 @@ export async function insertRssSource(source: {
     });
     return true;
   } catch (error) {
-    console.error("[Database] Failed to insert RSS source:", error);
+    console.error("[DB] Failed to insert RSS source:", error);
     return false;
   }
 }
@@ -352,7 +361,7 @@ export async function updateRssSource(id: number, updates: Partial<{
 }>) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot update RSS source: database not available");
+    console.warn("[DB] Cannot update RSS source: database not available");
     return false;
   }
 
@@ -363,7 +372,7 @@ export async function updateRssSource(id: number, updates: Partial<{
     }).where(eq(rssSources.id, id));
     return true;
   } catch (error) {
-    console.error("[Database] Failed to update RSS source:", error);
+    console.error("[DB] Failed to update RSS source:", error);
     return false;
   }
 }
@@ -371,7 +380,7 @@ export async function updateRssSource(id: number, updates: Partial<{
 export async function deleteRssSource(id: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot delete RSS source: database not available");
+    console.warn("[DB] Cannot delete RSS source: database not available");
     return false;
   }
 
@@ -379,7 +388,7 @@ export async function deleteRssSource(id: number) {
     await db.delete(rssSources).where(eq(rssSources.id, id));
     return true;
   } catch (error) {
-    console.error("[Database] Failed to delete RSS source:", error);
+    console.error("[DB] Failed to delete RSS source:", error);
     return false;
   }
 }
@@ -388,7 +397,7 @@ export async function deleteRssSource(id: number) {
 export async function getTrendingSearches() {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get trending searches: database not available");
+    console.warn("[DB] Cannot get trending searches: database not available");
     return [];
   }
 
@@ -405,7 +414,7 @@ export async function getTrendingSearches() {
 
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get trending searches:", error);
+    console.error("[DB] Failed to get trending searches:", error);
     return [];
   }
 }
@@ -413,7 +422,7 @@ export async function getTrendingSearches() {
 export async function markAsRead(userId: number, newsId: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot mark as read: database not available");
+    console.warn("[DB] Cannot mark as read: database not available");
     return false;
   }
 
@@ -424,7 +433,7 @@ export async function markAsRead(userId: number, newsId: number) {
     });
     return true;
   } catch (error) {
-    console.error("[Database] Failed to mark as read:", error);
+    console.error("[DB] Failed to mark as read:", error);
     return false;
   }
 }
@@ -432,7 +441,7 @@ export async function markAsRead(userId: number, newsId: number) {
 export async function getReadNews(userId: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get read news: database not available");
+    console.warn("[DB] Cannot get read news: database not available");
     return [];
   }
 
@@ -445,7 +454,7 @@ export async function getReadNews(userId: number) {
 
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get read news:", error);
+    console.error("[DB] Failed to get read news:", error);
     return [];
   }
 }
@@ -464,7 +473,7 @@ export async function getAiEventsList(input: {
 export async function isFavorited(userId: number, newsId: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot check favorite: database not available");
+    console.warn("[DB] Cannot check favorite: database not available");
     return false;
   }
 
@@ -477,7 +486,7 @@ export async function isFavorited(userId: number, newsId: number) {
 
     return result.length > 0;
   } catch (error) {
-    console.error("[Database] Failed to check favorite:", error);
+    console.error("[DB] Failed to check favorite:", error);
     return false;
   }
 }
@@ -485,7 +494,7 @@ export async function isFavorited(userId: number, newsId: number) {
 export async function addSearchHistory(userId: number, query: string) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot add search history: database not available");
+    console.warn("[DB] Cannot add search history: database not available");
     return false;
   }
 
@@ -497,7 +506,7 @@ export async function addSearchHistory(userId: number, query: string) {
     });
     return true;
   } catch (error) {
-    console.error("[Database] Failed to add search history:", error);
+    console.error("[DB] Failed to add search history:", error);
     return false;
   }
 }
@@ -505,7 +514,7 @@ export async function addSearchHistory(userId: number, query: string) {
 export async function getSearchHistory(userId: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get search history: database not available");
+    console.warn("[DB] Cannot get search history: database not available");
     return [];
   }
 
@@ -519,7 +528,7 @@ export async function getSearchHistory(userId: number) {
 
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get search history:", error);
+    console.error("[DB] Failed to get search history:", error);
     return [];
   }
 }
@@ -528,7 +537,7 @@ export async function getSearchHistory(userId: number) {
 export async function addFavorite(userId: number, newsId: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot add favorite: database not available");
+    console.warn("[DB] Cannot add favorite: database not available");
     return false;
   }
 
@@ -539,7 +548,7 @@ export async function addFavorite(userId: number, newsId: number) {
     });
     return true;
   } catch (error) {
-    console.error("[Database] Failed to add favorite:", error);
+    console.error("[DB] Failed to add favorite:", error);
     return false;
   }
 }
@@ -547,7 +556,7 @@ export async function addFavorite(userId: number, newsId: number) {
 export async function removeFavorite(userId: number, newsId: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot remove favorite: database not available");
+    console.warn("[DB] Cannot remove favorite: database not available");
     return false;
   }
 
@@ -557,7 +566,7 @@ export async function removeFavorite(userId: number, newsId: number) {
     );
     return true;
   } catch (error) {
-    console.error("[Database] Failed to remove favorite:", error);
+    console.error("[DB] Failed to remove favorite:", error);
     return false;
   }
 }
@@ -565,7 +574,7 @@ export async function removeFavorite(userId: number, newsId: number) {
 export async function getFavorites(userId: number) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get favorites: database not available");
+    console.warn("[DB] Cannot get favorites: database not available");
     return [];
   }
 
@@ -578,7 +587,7 @@ export async function getFavorites(userId: number) {
 
     return result;
   } catch (error) {
-    console.error("[Database] Failed to get favorites:", error);
+    console.error("[DB] Failed to get favorites:", error);
     return [];
   }
 }
@@ -587,7 +596,7 @@ export async function getFavorites(userId: number) {
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
+    console.warn("[DB] Cannot get user: database not available");
     return null;
   }
 
@@ -595,7 +604,7 @@ export async function getUserByOpenId(openId: string) {
     const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
     return result[0] || null;
   } catch (error) {
-    console.error("[Database] Failed to get user:", error);
+    console.error("[DB] Failed to get user:", error);
     return null;
   }
 }
