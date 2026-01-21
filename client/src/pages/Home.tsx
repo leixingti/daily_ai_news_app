@@ -323,11 +323,30 @@ export default function Home() {
                             </CardDescription>
                           </CardHeader>
                           <CardContent className="pb-3">
-                            <p className="text-sm text-muted-foreground line-clamp-3 mb-3">{news.summary}</p>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            {/* 显示摘要或原始摘要 */}
+                            <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
+                              {(news as any).excerpt || news.summary}
+                            </p>
+                            {/* 国外新闻显示翻译摘要 */}
+                            {news.region === "international" && (news as any).excerptTranslated && (
+                              <p className="text-xs text-muted-foreground line-clamp-2 mb-3 italic border-l-2 border-blue-300 pl-2">
+                                {(news as any).excerptTranslated}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                               <span>{formatDate(news.publishedAt)}</span>
                               {news.source && <span className="text-xs">{news.source}</span>}
                             </div>
+                            {/* 原文链接 */}
+                            <a
+                              href={news.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              阅读原文 →
+                            </a>
                           </CardContent>
                         </Card>
                       ))}
