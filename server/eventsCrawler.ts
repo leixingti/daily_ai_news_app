@@ -288,9 +288,9 @@ export async function runEventsCrawler(): Promise<void> {
 }
 
 export function startEventsCrawlerSchedule(): void {
-  console.log("[EventsCrawler] Scheduling crawler to run every 6 hours");
+  console.log("[EventsCrawler] Scheduling crawler to run every 10 minutes");
   runEventsCrawler();
   setInterval(() => {
     runEventsCrawler();
-  }, 6 * 60 * 60 * 1000);
+  }, 10 * 60 * 1000);
 }
