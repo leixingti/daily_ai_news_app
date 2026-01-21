@@ -1,4 +1,4 @@
-import { eq, desc, like, and, sql } from "drizzle-orm";
+import { eq, asc, desc, like, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, aiNews, favorites, searchHistory, readHistory, aiEvents, rssSources, systemConfig } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -285,11 +285,14 @@ export async function getAiEventsList(params: {
   region?: string;
   timeStatus?: string;
   searchQuery?: string;
+  sortBy?: 'date' | 'location';
+  sortOrder?: 'asc' | 'desc';
+  location?: string;
 }) {
   const db = await getDb();
   if (!db) return [];
 
-  const { limit = 30, offset = 0, type, region, timeStatus, searchQuery } = params;
+  const { limit = 30, offset = 0, type, region, timeStatus, searchQuery, sortBy = 'date', sortOrder = 'desc', location } = params;
   
   const conditions: any[] = [];
 
@@ -298,6 +301,9 @@ export async function getAiEventsList(params: {
   }
   if (region) {
     conditions.push(eq(aiEvents.region, region as any));
+  }
+  if (location) {
+    conditions.push(sql`${aiEvents.location} LIKE ${`%${location}%`}`);
   }
   if (timeStatus === 'upcoming') {
     conditions.push(sql`${aiEvents.startDate} > NOW()`);
@@ -315,8 +321,14 @@ export async function getAiEventsList(params: {
     query = query.where(and(...conditions));
   }
 
+  // Apply sorting
+  if (sortBy === 'location') {
+    query = query.orderBy(sortOrder === 'asc' ? asc(aiEvents.location) : desc(aiEvents.location));
+  } else {
+    query = query.orderBy(sortOrder === 'asc' ? asc(aiEvents.startDate) : desc(aiEvents.startDate));
+  }
+
   const result = await query
-    .orderBy(desc(aiEvents.startDate))
     .limit(limit)
     .offset(offset);
 
