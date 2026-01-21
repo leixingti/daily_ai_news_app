@@ -1,6 +1,6 @@
 import { eq, asc, desc, like, and, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 import { InsertUser, users, aiNews, favorites, searchHistory, readHistory, aiEvents, rssSources, systemConfig } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -11,8 +11,9 @@ export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       // PostgreSQL connection with SSL support for Render
-      const client = postgres(process.env.DATABASE_URL, {
-        ssl: 'require',
+      const client = new pg.Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
         max: 10,
       });
       _db = drizzle(client);
