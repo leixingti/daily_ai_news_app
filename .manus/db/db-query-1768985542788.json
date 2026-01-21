@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM ai_events;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user z1MYe7jFi4tpcxq.root --database 58BauMqumccq39DWK8F9Mx --execute DELETE FROM ai_events;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1534
+}

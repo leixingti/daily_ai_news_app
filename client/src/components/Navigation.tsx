@@ -11,7 +11,7 @@ export function Navigation() {
 
   const navItems = [
     { href: "/", label: "新闻", icon: Newspaper },
-    { href: "/events", label: "会议", icon: Calendar },
+    { href: "/events", label: "AI行业会议", icon: Calendar },
   ];
 
   return (

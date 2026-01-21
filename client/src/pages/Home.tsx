@@ -150,62 +150,9 @@ export default function Home() {
           )}
         </div>
 
-        {/* 推荐会议 */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">推荐会议</h2>
-            <Link href="/events">
-              <a>
-                <Button variant="outline" className="flex items-center gap-2">
-                  查看全部
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </a>
-            </Link>
-          </div>
 
-          {eventsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-48 rounded-lg" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {events.map((event: any) => (
-                <Card key={event.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex gap-2 mb-2">
-                      <Badge className={event.type === "online" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
-                        {event.type === "online" ? "线上" : "线下"}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="line-clamp-2 mb-4">
-                      {event.description}
-                    </CardDescription>
-                    <div className="text-xs text-gray-500">
-                      {format(new Date(event.startDate), "yyyy年 M月 d日", { locale: zhCN })}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* CTA 区域 */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-12 text-center">
-          <h3 className="text-3xl font-bold mb-4">不想错过任何重要信息？</h3>
-          <p className="text-xl text-blue-100 mb-8">
-            订阅我们的新闻通讯，获取最新的 AI 行业动态
-          </p>
-          <Button size="lg" variant="secondary">
-            立即订阅
-          </Button>
-        </div>
+
       </div>
     </div>
   );
