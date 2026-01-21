@@ -1,0 +1,52 @@
+services:
+  - type: web
+    name: daily-ai-news-app
+    runtime: node
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: build
+      - key: JWT_SECRET
+        scope: build
+      - key: VITE_APP_ID
+        scope: build
+      - key: OAUTH_SERVER_URL
+        scope: build
+      - key: VITE_OAUTH_PORTAL_URL
+        scope: build
+      - key: OWNER_OPEN_ID
+        scope: build
+      - key: OWNER_NAME
+        scope: build
+      - key: BUILT_IN_FORGE_API_URL
+        scope: build
+      - key: BUILT_IN_FORGE_API_KEY
+        scope: build
+      - key: VITE_FRONTEND_FORGE_API_KEY
+        scope: build
+      - key: VITE_FRONTEND_FORGE_API_URL
+        scope: build
+      - key: IT_HOME_API_KEY
+        scope: build
+      - key: IT_HOME_API_URL
+        value: https://api.ithome.com
+      - key: KR36_API_KEY
+        scope: build
+      - key: KR36_API_URL
+        value: https://api.36kr.com
+      - key: NEURIPS_API_URL
+        value: https://neurips.cc/api
+      - key: ICML_API_URL
+        value: https://icml.cc/api
+      - key: CVPR_API_URL
+        value: https://cvpr2026.thecvf.com/api
+      - key: AAAI_API_URL
+        value: https://aaai.org/api
+      - key: ACL_API_URL
+        value: https://aclweb.org/api
+    healthCheckPath: /
+    preDeployCommand: pnpm db:push

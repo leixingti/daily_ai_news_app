@@ -84,7 +84,7 @@ export const appRouter = router({
       )
       .query(async ({ ctx, input }) => {
         const { getFavorites } = await import("./db");
-        return await getFavorites(ctx.user.id, input.limit, input.offset);
+        return await getFavorites(ctx.user.id);
       }),
 
     check: protectedProcedure
@@ -116,7 +116,7 @@ export const appRouter = router({
 
         // Record search history if user is logged in
         if (ctx.user) {
-          await addSearchHistory(ctx.user.id, input.q, results.length);
+          await addSearchHistory(ctx.user.id, input.q);
         }
 
         return results;
@@ -126,14 +126,14 @@ export const appRouter = router({
       .input(z.object({ limit: z.number().optional().default(10) }))
       .query(async ({ ctx, input }) => {
         const { getSearchHistory } = await import("./db");
-        return await getSearchHistory(ctx.user.id, input.limit);
+        return await getSearchHistory(ctx.user.id);
       }),
 
     trending: publicProcedure
       .input(z.object({ limit: z.number().optional().default(10) }))
       .query(async ({ input }) => {
         const { getTrendingSearches } = await import("./db");
-        return await getTrendingSearches(input.limit);
+        return await getTrendingSearches();
       }),
   }),
 
@@ -167,6 +167,9 @@ export const appRouter = router({
           region: z.string().optional(),
           timeStatus: z.string().optional(),
           searchQuery: z.string().optional(),
+          sortBy: z.enum(['date', 'location']).optional().default('date'),
+          sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+          location: z.string().optional(),
         })
       )
       .query(async ({ input }) => {
