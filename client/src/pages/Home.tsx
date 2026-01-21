@@ -162,12 +162,10 @@ export default function Home() {
             <div className="flex items-center gap-2">
               {user?.role === "admin" && (
                 <div className="flex gap-2">
-                  <Link href="/rss-management">
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Settings className="w-4 h-4" />
-                      RSS管理
-                    </Button>
-                  </Link>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => window.location.href = '/rss-management'}>
+                    <Settings className="w-4 h-4" />
+                    RSS管理
+                  </Button>
                   <Button
                     onClick={handleRefresh}
                     disabled={refreshNewsMutation.isPending || refreshEventsMutation.isPending}
