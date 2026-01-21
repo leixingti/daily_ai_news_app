@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { startEventsCrawlerSchedule } from "../eventsCrawler";
 import { initializeRealEventsCrawlerSchedule } from "../realEventsCrawler";
 import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
+import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -71,6 +72,9 @@ async function startServer() {
     
     // Start real API crawler schedule
     initializeRealApiCrawlerSchedule();
+    
+    // Start RSS news crawler schedule
+    initializeRSSNewsCrawlerSchedule();
   });
 }
 
