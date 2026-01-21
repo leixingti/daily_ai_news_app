@@ -11,6 +11,7 @@ import { startEventsCrawlerSchedule } from "../eventsCrawler";
 import { initializeRealEventsCrawlerSchedule } from "../realEventsCrawler";
 import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
 import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
+import { initializeNewsExcerptGeneratorSchedule } from "../newsExcerptGenerator";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -75,6 +76,9 @@ async function startServer() {
     
     // Start RSS news crawler schedule
     initializeRSSNewsCrawlerSchedule();
+    
+    // Start news excerpt generator schedule
+    initializeNewsExcerptGeneratorSchedule();
   });
 }
 

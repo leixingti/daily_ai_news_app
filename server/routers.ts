@@ -49,6 +49,63 @@ export const appRouter = router({
       const byRegion = await getNewsByRegion();
       return { byCategory, byRegion };
     }),
+
+    listByDate: publicProcedure
+      .input(
+        z.object({
+          category: z.string().optional(),
+          region: z.string().optional(),
+          searchQuery: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { aiNews } = await import("../drizzle/schema");
+        const { eq, desc, like, and, or } = await import("drizzle-orm");
+        
+        const db = await getDb();
+        if (!db) return {};
+
+        try {
+          let query = db.select().from(aiNews);
+          const conditions = [];
+          
+          if (input.category && input.category !== "all") {
+            conditions.push(eq(aiNews.category, input.category as any));
+          }
+          if (input.region && input.region !== "all") {
+            conditions.push(eq(aiNews.region, input.region as any));
+          }
+          if (input.searchQuery) {
+            conditions.push(
+              or(
+                like(aiNews.title, `%${input.searchQuery}%`),
+                like(aiNews.content, `%${input.searchQuery}%`)
+              )
+            );
+          }
+
+          if (conditions.length > 0) {
+            query = query.where(and(...conditions)) as any;
+          }
+
+          const result = await query.orderBy(desc(aiNews.publishedAt));
+          const grouped: Record<string, any[]> = {};
+          
+          for (const news of result) {
+            const dateKey = new Date(news.publishedAt).toLocaleDateString('zh-CN');
+            if (!grouped[dateKey]) {
+              grouped[dateKey] = [];
+            }
+            grouped[dateKey].push(news);
+          }
+
+          return grouped;
+        } catch (error) {
+          console.error("Failed to get grouped news:", error);
+          return {};
+        }
+      }),
   }),
 
   // ==================== Favorites Management ====================
