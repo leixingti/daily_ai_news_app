@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startEventsCrawlerSchedule } from "../eventsCrawler";
 import { initializeRealEventsCrawlerSchedule } from "../realEventsCrawler";
+import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -67,6 +68,9 @@ async function startServer() {
     
     // Start real events crawler schedule
     initializeRealEventsCrawlerSchedule();
+    
+    // Start real API crawler schedule
+    initializeRealApiCrawlerSchedule();
   });
 }
 
