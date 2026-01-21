@@ -116,7 +116,7 @@ export const appRouter = router({
 
         // Record search history if user is logged in
         if (ctx.user) {
-          await addSearchHistory(ctx.user.id, input.q, results.length);
+          await addSearchHistory(ctx.user.id, input.q);
         }
 
         return results;

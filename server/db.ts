@@ -9,42 +9,49 @@ let _connecting = false;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (_db) return _db;
+  if (_db) {
+    console.log("[Database] Using cached connection");
+    return _db;
+  }
   
-  if (!process.env.DATABASE_URL) {
-    console.warn("[Database] DATABASE_URL not set");
+  const dbUrl = process.env.DATABASE_URL;
+  console.log("[Database] getDb() called, DATABASE_URL:", dbUrl ? "SET (" + dbUrl.substring(0, 30) + "...)" : "NOT SET");
+  
+  if (!dbUrl) {
+    console.error("[Database] DATABASE_URL not set");
     return null;
   }
 
   // Prevent multiple concurrent connection attempts
   if (_connecting) {
-    // Wait for connection to complete
+    console.log("[Database] Already connecting, waiting...");
     let attempts = 0;
     while (!_db && _connecting && attempts < 50) {
       await new Promise(resolve => setTimeout(resolve, 100));
       attempts++;
     }
+    console.log("[Database] Finished waiting, returning:", _db ? "connected" : "null");
     return _db;
   }
 
   _connecting = true;
   try {
-    console.log("[Database] Attempting to connect...");
-    // PostgreSQL connection with SSL support for Render
+    console.log("[Database] Creating connection pool...");
     const client = new pg.Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: dbUrl,
       ssl: { rejectUnauthorized: false },
       max: 10,
     });
     
-    // Test the connection
+    console.log("[Database] Testing connection with SELECT 1...");
     const testResult = await client.query('SELECT 1');
-    console.log("[Database] Connection test successful");
+    console.log("[Database] Connection test successful:", testResult.rows);
     
     _db = drizzle(client);
-    console.log("[Database] Connected successfully");
+    console.log("[Database] Drizzle instance created successfully");
   } catch (error) {
-    console.error("[Database] Failed to connect:", error);
+    console.error("[Database] Failed to connect:", error instanceof Error ? error.message : String(error));
+    console.error("[Database] Full error:", error);
     _db = null;
   } finally {
     _connecting = false;
@@ -377,7 +384,6 @@ export async function deleteRssSource(id: number) {
   }
 }
 
-
 // Search and Read History
 export async function getTrendingSearches() {
   const db = await getDb();
@@ -454,7 +460,6 @@ export async function getAiEventsList(input: {
   return getEventsList(input);
 }
 
-
 // Favorites Management
 export async function isFavorited(userId: number, newsId: number) {
   const db = await getDb();
@@ -477,7 +482,7 @@ export async function isFavorited(userId: number, newsId: number) {
   }
 }
 
-export async function addSearchHistory(userId: number, query: string, resultCount: number) {
+export async function addSearchHistory(userId: number, query: string) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot add search history: database not available");
@@ -488,7 +493,7 @@ export async function addSearchHistory(userId: number, query: string, resultCoun
     await db.insert(searchHistory).values({
       userId,
       query,
-      resultCount,
+      resultCount: 0,
     });
     return true;
   } catch (error) {
@@ -518,8 +523,6 @@ export async function getSearchHistory(userId: number) {
     return [];
   }
 }
-
-
 
 // Favorites CRUD
 export async function addFavorite(userId: number, newsId: number) {
@@ -579,7 +582,6 @@ export async function getFavorites(userId: number) {
     return [];
   }
 }
-
 
 // User queries
 export async function getUserByOpenId(openId: string) {
