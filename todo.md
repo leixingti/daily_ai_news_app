@@ -118,8 +118,9 @@
 
 
 ## Render 部署 - 新增
-- [ ] 创建 render.yaml 配置文件
-- [ ] 推送代码到 GitHub
-- [ ] 在 Render 上配置部署
-- [ ] 配置环境变量
-- [ ] 验证部署成功
+- [x] 创建 render.yaml 配置文件
+- [x] 推送代码到 GitHub
+- [x] 创建 Render 部署指南
+- [x] 在 Render 上配置部署
+- [x] 配置环境变量
+- [x] 验证部署成功
