@@ -15,215 +15,178 @@ export interface EventData {
   speakers?: string;
   agenda?: string;
   expectedAttendees?: number;
-  url: string;
+  url: string; // sourceUrl renamed to url
 }
 
+/**
+ * 会议类型关键词
+ */
 const EVENT_TYPE_KEYWORDS = {
   online: ["线上", "在线", "webinar", "virtual", "online", "直播", "远程"],
   offline: ["线下", "现场", "会场", "地点", "venue", "地址"],
   forum: ["论坛", "峰会", "大会", "conference", "summit", "congress"],
 };
 
-export function identifyEventType(text: string): "online" | "offline" {
+/**
+ * 识别会议类型
+ */
+export function identifyEventType(
+  text: string
+): "online" | "offline" {
   const lowerText = text.toLowerCase();
+
   const hasOnline = EVENT_TYPE_KEYWORDS.online.some((keyword) =>
     lowerText.includes(keyword)
   );
   const hasOffline = EVENT_TYPE_KEYWORDS.offline.some((keyword) =>
     lowerText.includes(keyword)
   );
+
   if (hasOnline) return "online";
   if (hasOffline) return "offline";
+
+  // 默认为线下
   return "offline";
 }
 
-async function crawlAIConferences(): Promise<EventData[]> {
-  const now = new Date();
-  const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-  const oneYearLater = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
+/**
+ * 从 IT 之家爬取会议信息（示例）
+ */
+async function crawlFromITHome(): Promise<EventData[]> {
+  try {
+    const response = await axios.get(
+      "https://www.ithome.com/search?keywords=AI%E4%BC%9A%E8%AE%AE&type=news",
+      {
+        timeout: 10000,
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      }
+    );
 
-  const aiConferences: EventData[] = [
-    // 2025年会议
+    // 这是一个示例实现，实际需要根据网站结构进行解析
+    const events: EventData[] = [];
+    // 解析逻辑...
+
+    return events;
+  } catch (error) {
+    console.error("[EventsCrawler] Failed to crawl from IT Home:", error);
+    return [];
+  }
+}
+
+/**
+ * 从 36Kr 爬取会议信息（示例）
+ */
+async function crawlFrom36Kr(): Promise<EventData[]> {
+  try {
+    const response = await axios.get(
+      "https://36kr.com/search?q=AI%E4%BC%9A%E8%AE%AE",
+      {
+        timeout: 10000,
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      }
+    );
+
+    const events: EventData[] = [];
+    // 解析逻辑...
+
+    return events;
+  } catch (error) {
+    console.error("[EventsCrawler] Failed to crawl from 36Kr:", error);
+    return [];
+  }
+}
+
+/**
+ * 从 AI 行业论坛爬取会议信息（示例）
+ */
+async function crawlFromAIForums(): Promise<EventData[]> {
+  const events: EventData[] = [];
+
+  // 示例数据：国内常见的 AI 会议
+    const sampleEvents = [
     {
-      name: "2025中国AI应用大会",
-      description: "AI技术在各行业的实际应用案例分享",
-      startDate: new Date("2025-03-20"),
-      endDate: new Date("2025-03-22"),
-      location: "北京国家会议中心",
-      type: "offline",
-      region: "domestic",
-      registrationUrl: "https://example.com/ai-app-2025",
-      speakers: "业界领袖、技术专家",
-      agenda: "主题演讲、分论坛、技术展示、投融资对接",
-      expectedAttendees: 3000,
-      url: "https://example.com/ai-app-2025",
-    },
-    {
-      name: "LLM大模型技术论坛2025",
-      description: "探讨大语言模型的最新进展和应用",
-      startDate: new Date("2025-05-15"),
-      endDate: new Date("2025-05-17"),
-      location: "上海世博展览馆",
-      type: "offline",
-      region: "domestic",
-      registrationUrl: "https://example.com/llm-2025",
-      speakers: "模型研究专家、业界从业者",
-      agenda: "技术演讲、产品演示、业界对话",
-      expectedAttendees: 2500,
-      url: "https://example.com/llm-2025",
-    },
-    {
-      name: "AI与业务整合峰会",
-      description: "AI技术与传统业务的整合与实践",
-      startDate: new Date("2025-07-10"),
-      endDate: new Date("2025-07-12"),
-      location: "深圳会议中心",
-      type: "offline",
-      region: "domestic",
-      registrationUrl: "https://example.com/ai-business-2025",
-      speakers: "企业主管、技术总监",
-      agenda: "案例研究、技术分享、产业应用",
-      expectedAttendees: 2000,
-      url: "https://example.com/ai-business-2025",
-    },
-    {
-      name: "2025年AI开源社区大会",
-      description: "开源AI项目的发展和社区建设",
-      startDate: new Date("2025-09-18"),
-      endDate: new Date("2025-09-20"),
-      location: "线上",
-      type: "online",
-      region: "domestic",
-      registrationUrl: "https://example.com/ai-opensource-2025",
-      speakers: "开源项目维护者、社区领袖",
-      agenda: "项目分享、技术讨论、社区建设",
-      expectedAttendees: 5000,
-      url: "https://example.com/ai-opensource-2025",
-    },
-    {
-      name: "2025年计算机视觉技术大会",
-      description: "计算机视觉领域的最新技术和应用",
-      startDate: new Date("2025-10-25"),
-      endDate: new Date("2025-10-27"),
-      location: "杭州",
-      type: "offline",
-      region: "domestic",
-      registrationUrl: "https://example.com/cv-2025",
-      speakers: "视觉算法专家、应用开发者",
-      agenda: "学术报告、技术工作坊、应用展示",
-      expectedAttendees: 1800,
-      url: "https://example.com/cv-2025",
-    },
-    // 2026年会议
-    {
-      name: "2026中国AI产业大会",
-      description: "探讨AI在各行业的应用和发展趋势",
+      name: "2026 年中国 AI 产业大会",
+      description: "探讨 AI 在各行业的应用和发展趋势",
       startDate: new Date("2026-03-15"),
       endDate: new Date("2026-03-17"),
       location: "北京国家会议中心",
-      type: "offline",
-      region: "domestic",
-      registrationUrl: "https://example.com/ai-industry-2026",
+      type: "offline" as const,
+      region: "domestic" as const,
+      registrationUrl: "https://example.com/register",
       speakers: "李开复、杨植麟、张钹等行业专家",
       agenda: "主题演讲、分论坛、技术展示、投融资对接",
       expectedAttendees: 5000,
-      url: "https://example.com/ai-industry-2026",
+      url: "https://example.com/event/1",
     },
     {
-      name: "CCAI 2026全球人工智能大会",
-      description: "全球顶级AI学术和产业盛会",
+      name: "CCAI 2026 全球人工智能大会",
+      description: "全球顶级 AI 学术和产业盛会",
       startDate: new Date("2026-08-20"),
       endDate: new Date("2026-08-22"),
       location: "上海世博展览馆",
-      type: "offline",
-      region: "domestic",
+      type: "offline" as const,
+      region: "domestic" as const,
       registrationUrl: "https://example.com/ccai2026",
-      speakers: "国内外顶级AI专家",
+      speakers: "国内外顶级 AI 专家",
       agenda: "学术报告、工业论坛、竞赛展示",
       expectedAttendees: 8000,
       url: "https://example.com/ccai2026",
     },
     {
-      name: "大模型时代的AI创新论坛",
+      name: "大模型时代的 AI 创新论坛",
       description: "探讨大模型技术在实际应用中的机遇和挑战",
       startDate: new Date("2026-02-28"),
       location: "线上",
-      type: "online",
-      region: "domestic",
+      type: "online" as const,
+      region: "domestic" as const,
       registrationUrl: "https://example.com/llm-forum",
       speakers: "业界领袖、技术专家",
-      agenda: "主题分享、圆桌讨论、Q&A互动",
+      agenda: "主题分享、圆桌讨论、Q&A 互动",
       expectedAttendees: 10000,
       url: "https://example.com/llm-forum",
     },
-    {
-      name: "AI与深度学习技术峰会",
-      description: "深度学习技术的最新进展和应用",
-      startDate: new Date("2026-06-10"),
-      endDate: new Date("2026-06-12"),
-      location: "杭州亚民大会堂",
-      type: "offline",
-      region: "domestic",
-      registrationUrl: "https://example.com/dl-summit-2026",
-      speakers: "深度学习研究专家",
-      agenda: "技术议题、实践分享、产业应用",
-      expectedAttendees: 3500,
-      url: "https://example.com/dl-summit-2026",
-    },
-    {
-      name: "2026年自然语言处理技术论坛",
-      description: "NLP技术的最新进展和应用场景",
-      startDate: new Date("2026-04-22"),
-      endDate: new Date("2026-04-24"),
-      location: "北京",
-      type: "offline",
-      region: "domestic",
-      registrationUrl: "https://example.com/nlp-2026",
-      speakers: "NLP研究者、应用开发者",
-      agenda: "技术演讲、案例分享、工作坊",
-      expectedAttendees: 2200,
-      url: "https://example.com/nlp-2026",
-    },
-    {
-      name: "2026年AI芯片技术大会",
-      description: "AI芯片的设计、制造和应用",
-      startDate: new Date("2026-11-15"),
-      endDate: new Date("2026-11-17"),
-      location: "深圳",
-      type: "offline",
-      region: "domestic",
-      registrationUrl: "https://example.com/ai-chip-2026",
-      speakers: "芯片设计师、制造商",
-      agenda: "技术报告、产品展示、投资对接",
-      expectedAttendees: 2800,
-      url: "https://example.com/ai-chip-2026",
-    },
   ];
 
-  return aiConferences.filter((event) => {
-    const eventDate = new Date(event.startDate);
-    return eventDate >= oneYearAgo && eventDate <= oneYearLater;
-  });
+  return sampleEvents;
 }
 
-async function eventExists(name: string): Promise<boolean> {
+/**
+ * 检查事件是否已存在
+ */
+async function eventExists(
+  name: string,
+  startDate: Date
+): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
+
   const existing = await db
     .select()
     .from(aiEvents)
     .where(eq(aiEvents.name, name))
     .limit(1);
+
   return existing.length > 0;
 }
 
+/**
+ * 保存或更新事件
+ */
 async function saveOrUpdateEvent(event: EventData): Promise<void> {
   const db = await getDb();
   if (!db) {
     console.warn("[EventsCrawler] Database not available");
     return;
   }
+
   try {
+    // 检查是否已存在
     const existing = await db
       .select()
       .from(aiEvents)
@@ -231,6 +194,7 @@ async function saveOrUpdateEvent(event: EventData): Promise<void> {
       .limit(1);
 
     if (existing.length > 0) {
+      // 更新现有事件
       await db
         .update(aiEvents)
         .set({
@@ -239,17 +203,17 @@ async function saveOrUpdateEvent(event: EventData): Promise<void> {
           endDate: event.endDate,
           location: event.location,
           type: event.type,
-          region: event.region,
           registrationUrl: event.registrationUrl,
           speakers: event.speakers,
           agenda: event.agenda,
           expectedAttendees: event.expectedAttendees,
-          url: event.url,
           updatedAt: new Date(),
         })
         .where(eq(aiEvents.name, event.name));
+
       console.log(`[EventsCrawler] Updated event: ${event.name}`);
     } else {
+      // 插入新事件
       await db.insert(aiEvents).values({
         name: event.name,
         description: event.description,
@@ -263,21 +227,48 @@ async function saveOrUpdateEvent(event: EventData): Promise<void> {
         agenda: event.agenda,
         expectedAttendees: event.expectedAttendees,
         url: event.url,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
+
       console.log(`[EventsCrawler] Created event: ${event.name}`);
     }
   } catch (error) {
-    console.error(`[EventsCrawler] Failed to save event ${event.name}:`, error);
+    console.error("[EventsCrawler] Failed to save event:", error);
   }
 }
 
+/**
+ * 执行完整的爬虫任务
+ */
 export async function runEventsCrawler(): Promise<void> {
-  console.log("[EventsCrawler] Starting crawler...");
-  try {
-    const events = await crawlAIConferences();
-    console.log(`[EventsCrawler] Found ${events.length} events`);
+  console.log("[EventsCrawler] Starting events crawler...");
 
-    for (const event of events) {
+  try {
+    // 从多个数据源爬取事件
+    const [eventsFromITHome, eventsFrom36Kr, eventsFromForums] = await Promise.all([
+      crawlFromITHome(),
+      crawlFrom36Kr(),
+      crawlFromAIForums(),
+    ]);
+
+    const allEvents = [
+      ...eventsFromITHome,
+      ...eventsFrom36Kr,
+      ...eventsFromForums,
+    ];
+
+    console.log(`[EventsCrawler] Crawled ${allEvents.length} events`);
+
+    // 处理每个事件
+    for (const event of allEvents) {
+      // 识别事件类型
+      const eventType = identifyEventType(
+        `${event.name} ${event.description} ${event.location || ""}`
+      );
+      event.type = eventType;
+
+      // 保存或更新事件
       await saveOrUpdateEvent(event);
     }
 
@@ -287,10 +278,19 @@ export async function runEventsCrawler(): Promise<void> {
   }
 }
 
+/**
+ * 启动定时爬虫任务（每 6 小时执行一次）
+ */
 export function startEventsCrawlerSchedule(): void {
-  console.log("[EventsCrawler] Scheduling crawler to run every 6 hours");
+  // 立即执行一次
   runEventsCrawler();
+
+  // 每 6 小时执行一次 (6 * 60 * 60 * 1000 = 21600000 ms)
+  const INTERVAL_MS = 6 * 60 * 60 * 1000;
+
   setInterval(() => {
     runEventsCrawler();
-  }, 6 * 60 * 60 * 1000);
+  }, INTERVAL_MS);
+
+  console.log("[EventsCrawler] Events crawler schedule started (every 6 hours)");
 }

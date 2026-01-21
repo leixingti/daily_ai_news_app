@@ -7,14 +7,4 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
-  // Real API credentials
-  itHomeApiKey: process.env.IT_HOME_API_KEY ?? "",
-  itHomeApiUrl: process.env.IT_HOME_API_URL ?? "https://api.ithome.com",
-  kr36ApiKey: process.env.KR36_API_KEY ?? "",
-  kr36ApiUrl: process.env.KR36_API_URL ?? "https://api.36kr.com",
-  neuripsApiUrl: process.env.NEURIPS_API_URL ?? "https://neurips.cc/api",
-  icmlApiUrl: process.env.ICML_API_URL ?? "https://icml.cc/api",
-  cvprApiUrl: process.env.CVPR_API_URL ?? "https://cvpr2026.thecvf.com/api",
-  aaaiApiUrl: process.env.AAAI_API_URL ?? "https://aaai.org/api",
-  aclApiUrl: process.env.ACL_API_URL ?? "https://aclweb.org/api",
 };

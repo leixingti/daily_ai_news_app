@@ -167,9 +167,6 @@ export const appRouter = router({
           region: z.string().optional(),
           timeStatus: z.string().optional(),
           searchQuery: z.string().optional(),
-          sortBy: z.enum(['date', 'location']).optional().default('date'),
-          sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
-          location: z.string().optional(),
         })
       )
       .query(async ({ input }) => {
