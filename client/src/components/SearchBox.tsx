@@ -105,7 +105,7 @@ export default function SearchBox({ onSearch, placeholder = "搜索新闻..." }:
                       onClick={() => handleSuggestionClick(item.query)}
                     >
                       <span className="text-sm">{item.query}</span>
-                      <span className="text-xs text-gray-400">{item.count}</span>
+                      <span className="text-xs text-gray-400">{String(item.count)}</span>
                     </div>
                   ))}
                 </>

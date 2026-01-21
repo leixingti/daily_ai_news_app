@@ -151,7 +151,7 @@ export async function getAiNewsList(input: {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
 
     const result = await query
@@ -257,7 +257,7 @@ export async function getEventsList(input: {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
 
     const result = await query

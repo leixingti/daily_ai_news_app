@@ -22,6 +22,34 @@
       "when": 1768966422101,
       "tag": "0002_wooden_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1769004107327,
+      "tag": "0003_clear_galactus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1769033750018,
+      "tag": "0004_jazzy_living_tribunal",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1769036311553,
+      "tag": "0005_steep_microchip",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1769036621400,
+      "tag": "0006_thankful_sumo",
+      "breakpoints": true
     }
   ]
 }
