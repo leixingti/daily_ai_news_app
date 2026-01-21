@@ -49,8 +49,8 @@ export const eventsCrawlerRouter = router({
       return {
         status: "running",
         lastRun: new Date(),
-        nextRun: new Date(Date.now() + 5 * 60 * 1000),
-        interval: "5 minutes",
+        nextRun: new Date(Date.now() + 10 * 60 * 1000),
+        interval: "10 minutes",
       };
     }),
 });

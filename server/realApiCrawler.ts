@@ -337,10 +337,10 @@ export function initializeRealApiCrawlerSchedule(): void {
   // 立即运行一次
   runRealApiCrawler();
 
-  // 每 5 分钟运行一次
+  // 每 10 分钟运行一次
   setInterval(() => {
     runRealApiCrawler();
-  }, 5 * 60 * 1000);
+  }, 10 * 60 * 1000);
 
-  console.log("[RealApiCrawler] Scheduled to run every 5 minutes");
+  console.log("[RealApiCrawler] Scheduled to run every 10 minutes");
 }

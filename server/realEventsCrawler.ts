@@ -261,10 +261,10 @@ export function initializeRealEventsCrawlerSchedule(): void {
   // 立即运行一次
   runRealEventsCrawler();
 
-  // 每 5 分钟运行一次
+  // 每 10 分钟运行一次
   setInterval(() => {
     runRealEventsCrawler();
-  }, 5 * 60 * 1000); // 5 分钟
+  }, 10 * 60 * 1000); // 10 分钟
 
-  console.log("[RealEventsCrawler] Scheduled to run every 5 minutes");
+  console.log("[RealEventsCrawler] Scheduled to run every 10 minutes");
 }
