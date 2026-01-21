@@ -1,31 +1,30 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
-const integer = int;
+import { integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 /**
  * Enum definitions
  */
-export const roleEnum = mysqlEnum("role", ["user", "admin"]);
-export const categoryEnum = mysqlEnum("category", ["tech", "product", "industry", "event"]);
-export const regionEnum = mysqlEnum("region", ["domestic", "international"]);
-export const eventTypeEnum = mysqlEnum("event_type", ["online", "offline"]);
+export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const categoryEnum = pgEnum("category", ["tech", "product", "industry", "event"]);
+export const regionEnum = pgEnum("region", ["domestic", "international"]);
+export const eventTypeEnum = pgEnum("event_type", ["online", "offline"]);
 
 /**
  * Core user table backing auth flow.
  * Extend this file with additional tables as your product grows.
  * Columns use camelCase to match both database fields and generated types.
  */
-export const users = mysqlTable("users", {
+export const users = pgTable("users", {
   /**
    * Surrogate primary key. Auto-incremented numeric value managed by the database.
    * Use this for relations between tables.
    */
-  id: integer("id").primaryKey().autoincrement(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: roleEnum.default("user").notNull(),
+  role: roleEnum().default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -37,14 +36,14 @@ export type InsertUser = typeof users.$inferInsert;
 /**
  * AI 新闻表
  */
-export const aiNews = mysqlTable("ai_news", {
-  id: integer("id").primaryKey().autoincrement(),
+export const aiNews = pgTable("ai_news", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   title: text("title").notNull(),
   summary: text("summary").notNull(),
   content: text("content").notNull(),
   sourceUrl: varchar("sourceUrl", { length: 512 }).notNull(),
-  category: categoryEnum.default("tech").notNull(),
-  region: regionEnum.default("international").notNull(),
+  category: categoryEnum().default("tech").notNull(),
+  region: regionEnum().default("international").notNull(),
   publishedAt: timestamp("publishedAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
@@ -62,16 +61,16 @@ export type InsertAiNews = typeof aiNews.$inferInsert;
 /**
  * AI 业界会议表
  */
-export const aiEvents = mysqlTable("ai_events", {
-  id: integer("id").primaryKey().autoincrement(),
+export const aiEvents = pgTable("ai_events", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   url: varchar("url", { length: 512 }).notNull().unique(),
   startDate: timestamp("startDate").notNull(),
   endDate: timestamp("endDate"),
   location: text("location"),
-  type: eventTypeEnum.notNull(),
-  region: regionEnum.default("international").notNull(),
+  type: eventTypeEnum().notNull(),
+  region: regionEnum().default("international").notNull(),
   registrationUrl: text("registrationUrl"),
   speakers: text("speakers"),
   expectedAttendees: integer("expectedAttendees"),
@@ -86,8 +85,8 @@ export type InsertAiEvent = typeof aiEvents.$inferInsert;
 /**
  * 用户收藏表 - 存储用户收藏的新闻
  */
-export const favorites = mysqlTable("favorites", {
-  id: integer("id").primaryKey().autoincrement(),
+export const favorites = pgTable("favorites", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("userId").notNull(),
   newsId: integer("newsId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -99,8 +98,8 @@ export type InsertFavorite = typeof favorites.$inferInsert;
 /**
  * 搜索历史表 - 记录用户搜索行为
  */
-export const searchHistory = mysqlTable("search_history", {
-  id: integer("id").primaryKey().autoincrement(),
+export const searchHistory = pgTable("search_history", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("userId").notNull(),
   query: text("query").notNull(),
   resultCount: integer("resultCount").default(0).notNull(),
@@ -113,8 +112,8 @@ export type InsertSearchHistory = typeof searchHistory.$inferInsert;
 /**
  * 用户阅读历史表
  */
-export const readHistory = mysqlTable("read_history", {
-  id: integer("id").primaryKey().autoincrement(),
+export const readHistory = pgTable("read_history", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("userId").notNull(),
   newsId: integer("newsId").notNull(),
   readAt: timestamp("readAt").defaultNow().notNull(),
@@ -126,13 +125,13 @@ export type InsertReadHistory = typeof readHistory.$inferInsert;
 /**
  * RSS 源表
  */
-export const rssSources = mysqlTable("rss_sources", {
-  id: integer("id").primaryKey().autoincrement(),
+export const rssSources = pgTable("rss_sources", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   name: varchar("name", { length: 255 }).notNull(),
   url: varchar("url", { length: 512 }).notNull().unique(),
   description: text("description"),
   isActive: integer("is_active").default(1).notNull(),
-  region: regionEnum.default("international").notNull(),
+  region: regionEnum().default("international").notNull(),
   lastFetchedAt: timestamp("last_fetched_at"),
   successCount: integer("success_count").default(0).notNull(),
   failureCount: integer("failure_count").default(0).notNull(),
@@ -147,8 +146,8 @@ export type InsertRssSource = typeof rssSources.$inferInsert;
 /**
  * 系统配置表
  */
-export const systemConfig = mysqlTable("system_config", {
-  id: integer("id").primaryKey().autoincrement(),
+export const systemConfig = pgTable("system_config", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   key: varchar("key", { length: 64 }).notNull().unique(),
   value: text("value").notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
