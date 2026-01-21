@@ -1,5 +1,6 @@
 import { eq, asc, desc, like, and, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { InsertUser, users, aiNews, favorites, searchHistory, readHistory, aiEvents, rssSources, systemConfig } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -9,7 +10,8 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const client = postgres(process.env.DATABASE_URL);
+      _db = drizzle(client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -68,9 +70,16 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    // PostgreSQL upsert using onConflictDoUpdate
+    const query = db.insert(users).values(values);
+    // For PostgreSQL, we need to use raw SQL or handle the conflict differently
+    // Since this is a user upsert, we'll first try to update, then insert if not found
+    const existing = await db.select().from(users).where(eq(users.openId, user.openId)).limit(1);
+    if (existing.length > 0) {
+      await db.update(users).set(updateSet).where(eq(users.openId, user.openId));
+    } else {
+      await query;
+    }
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
