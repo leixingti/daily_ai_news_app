@@ -14,6 +14,7 @@ import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
 import { initializeNewsExcerptGeneratorSchedule } from "../newsExcerptGenerator";
 import adminRoutes from "../adminRoutes";
 import { testRouter } from "../testRouter";
+import fixLinksRouter from "../fixLinksRouter";
 import { runMigrations } from "../migrate";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -54,6 +55,8 @@ async function startServer() {
   app.use("/api/admin", adminRoutes);
   // Test routes under /api/test
   app.use("/api/test", testRouter);
+  // Fix links routes under /api/fix
+  app.use("/api/fix", fixLinksRouter);
   // tRPC API
   app.use(
     "/api/trpc",
