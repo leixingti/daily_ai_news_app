@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, RefreshCw, Clock, Sparkles, Settings, Circle, Calendar, Globe, MapPin, User, LogOut, Users, Video, Map as MapIcon } from "lucide-react";
+import { Search, RefreshCw, Clock, Sparkles, Settings, Circle, Calendar, Globe, MapPin, User, LogOut, Users, Video, Map as MapIcon, FileText, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { groupNewsByDate, formatRelativeTime } from "@/utils/dateGrouping";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 // 使用数组确保顺序一致
 const categoryLabels: Record<string, string> = {
@@ -337,16 +338,60 @@ export default function Home() {
                               <span>{formatDate(news.publishedAt)}</span>
                               {news.source && <span className="text-xs">{news.source}</span>}
                             </div>
-                            {/* 原文链接 */}
-                            <a
-                              href={news.sourceUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              阅读原文 →
-                            </a>
+                            {/* 查看全文和原文链接 */}
+                            <div className="flex items-center gap-3">
+                              {news.content && news.content.length > news.summary.length && (
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <button
+                                      className="inline-flex items-center gap-1 text-xs text-green-600 hover:text-green-800 hover:underline"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <FileText className="w-3 h-3" />
+                                      查看全文
+                                    </button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                                    <DialogHeader>
+                                      <DialogTitle className="text-xl">{news.title}</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="mt-4 space-y-4">
+                                      <div className="flex gap-2">
+                                        <Badge variant="secondary" className={categoryColors[news.category as keyof typeof categoryColors]}>
+                                          {categoryLabels[news.category]}
+                                        </Badge>
+                                        <Badge variant="outline" className={regionColors[news.region as keyof typeof regionColors]}>
+                                          {regionLabels[news.region as keyof typeof regionLabels]}
+                                        </Badge>
+                                      </div>
+                                      <div className="prose prose-sm max-w-none">
+                                        <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{news.content}</p>
+                                      </div>
+                                      <div className="flex justify-between items-center pt-4 border-t">
+                                        <span className="text-sm text-gray-500">{formatDate(news.publishedAt)}</span>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => window.open(news.sourceUrl, "_blank")}
+                                        >
+                                          <ExternalLink className="h-4 w-4 mr-2" />
+                                          查看原文
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              )}
+                              <a
+                                href={news.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                阅读原文 →
+                              </a>
+                            </div>
                           </CardContent>
                         </Card>
                       ))}

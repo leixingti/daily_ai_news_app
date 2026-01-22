@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, BookmarkPlus, BookmarkCheck, Share2, ExternalLink } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Heart, BookmarkPlus, BookmarkCheck, Share2, ExternalLink, FileText } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -11,6 +12,7 @@ interface NewsCardProps {
   id: number;
   title: string;
   summary: string;
+  content?: string;
   category: string;
   region: string;
   publishedAt: string | Date;
@@ -37,6 +39,7 @@ export default function NewsCard({
   id,
   title,
   summary,
+  content,
   category,
   region,
   publishedAt,
@@ -173,6 +176,48 @@ export default function NewsCard({
             >
               <Share2 className="h-4 w-4" />
             </Button>
+
+            {content && content.length > summary.length && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-8 p-0"
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl">{title}</DialogTitle>
+                  </DialogHeader>
+                  <div className="mt-4 space-y-4">
+                    <div className="flex gap-2">
+                      <Badge className={categoryColors[category] || "bg-gray-100 text-gray-800"}>
+                        {category}
+                      </Badge>
+                      <Badge variant="outline">{regionLabels[region] || region}</Badge>
+                    </div>
+                    <div className="prose prose-sm max-w-none">
+                      <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{content}</p>
+                    </div>
+                    <div className="flex justify-between items-center pt-4 border-t">
+                      <span className="text-sm text-gray-500">{formatDate(publishedAt)}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(sourceUrl, "_blank")}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        查看原文
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
 
             <Button
               variant="ghost"

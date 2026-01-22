@@ -8,6 +8,7 @@ import { getDb } from "./db";
 import { aiNews } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
+import { extractArticleContent } from "./contentExtractor";
 
 const router = Router();
 
@@ -232,6 +233,7 @@ router.get("/translate-news", async (req: Request, res: Response) => {
 
         let translatedTitle = news.title;
         let translatedSummary = news.summary;
+        let translatedContent = news.content;
 
         const promises = [];
         if (titleNeedsTranslation) {
@@ -252,13 +254,31 @@ router.get("/translate-news", async (req: Request, res: Response) => {
 
         res.write(`<div class="log-entry">  📝 译标题: ${translatedTitle.substring(0, 60)}${translatedTitle.length > 60 ? '...' : ''}</div>`);
 
+        // 抓取并翻译完整文章内容
+        try {
+          res.write(`<div class="log-entry">  🔍 正在抓取完整内容...</div>`);
+          const articleContent = await extractArticleContent(news.sourceUrl);
+          
+          if (articleContent && articleContent.length > 200) {
+            res.write(`<div class="log-entry">  🌐 正在翻译全文 (${articleContent.length} 字符)...</div>`);
+            translatedContent = await translateText(articleContent);
+            res.write(`<div class="log-entry">  ✓ 全文翻译完成</div>`);
+          } else {
+            res.write(`<div class="log-entry">  ⚠️ 内容提取失败，使用摘要</div>`);
+            translatedContent = translatedSummary;
+          }
+        } catch (error) {
+          res.write(`<div class="log-entry">  ⚠️ 全文翻译失败: ${error}</div>`);
+          translatedContent = translatedSummary;
+        }
+
         // 更新数据库
         await db
           .update(aiNews)
           .set({
             title: translatedTitle,
             summary: translatedSummary,
-            content: translatedSummary,
+            content: translatedContent,
             updatedAt: new Date(),
           })
           .where(eq(aiNews.id, news.id));

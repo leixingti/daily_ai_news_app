@@ -9,6 +9,7 @@ import { getDb } from "./db";
 import { aiNews } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
+import { extractArticleContent } from "./contentExtractor";
 
 interface RSSItem {
   title: string;
@@ -18,6 +19,7 @@ interface RSSItem {
   source: string;
   region: "domestic" | "international";
   category?: string;
+  fullContent?: string;
 }
 
 /**
@@ -262,6 +264,26 @@ async function parseRSSFeed(
           }
         }
 
+        // 抓取并翻译完整文章内容（仅国际新闻）
+        let fullContent = translatedDescription;
+        if (region === "international" && link) {
+          try {
+            console.log(`[RSSNewsCrawler] Extracting full content from: ${link}`);
+            const articleContent = await extractArticleContent(link);
+            
+            if (articleContent && articleContent.length > 200) {
+              // 翻译完整内容
+              console.log(`[RSSNewsCrawler] Translating full content (${articleContent.length} chars)...`);
+              fullContent = await translateText(articleContent);
+              console.log(`[RSSNewsCrawler] Full content translated successfully`);
+            } else {
+              console.log(`[RSSNewsCrawler] Content extraction failed or too short, using description`);
+            }
+          } catch (error) {
+            console.error(`[RSSNewsCrawler] Failed to extract/translate full content:`, error);
+          }
+        }
+
         items.push({
           title: translatedTitle,
           description: translatedDescription,
@@ -269,6 +291,7 @@ async function parseRSSFeed(
           pubDate,
           source: sourceName,
           region,
+          fullContent: fullContent,
         });
 
         count++;
@@ -315,7 +338,7 @@ async function saveNews(item: RSSItem): Promise<boolean> {
     await db.insert(aiNews).values({
       title: item.title,
       summary: item.description.substring(0, 200),
-      content: item.description,
+      content: item.fullContent || item.description,
       sourceUrl: item.link,
       region: item.region,
       category: (item.category || "tech") as "tech" | "product" | "industry" | "event",
