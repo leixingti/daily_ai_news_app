@@ -362,6 +362,7 @@ async function saveNews(item: RSSItem): Promise<boolean> {
       title: item.title,
       summary: item.description.substring(0, 200),
       content: item.fullContent || item.description,
+      source: item.source,
       sourceUrl: item.link,
       region: item.region,
       category: (item.category || "tech") as "tech" | "product" | "industry" | "event",
