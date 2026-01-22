@@ -252,9 +252,9 @@ router.get("/translate-news", async (req: Request, res: Response) => {
     let skippedCount = 0;
     let errorCount = 0;
 
-    for (let i = 0; i < internationalNews.length; i++) {
-      const news = internationalNews[i];
-      const progress = `[${i + 1}/${internationalNews.length}]`;
+    // 并发处理函数
+    const translateNewsItem = async (news: typeof internationalNews[0], index: number) => {
+      const progress = `[${index + 1}/${internationalNews.length}]`;
       
       res.write(`<div class="log-entry"><strong>${progress}</strong> 处理新闻 ID: ${news.id}</div>`);
       res.write(`<div class="log-entry">  📰 原标题: ${news.title.substring(0, 60)}${news.title.length > 60 ? '...' : ''}</div>`);
@@ -265,8 +265,7 @@ router.get("/translate-news", async (req: Request, res: Response) => {
 
       if (!titleNeedsTranslation && !summaryNeedsTranslation) {
         res.write(`<div class="log-entry">  ✓ 已是中文，跳过</div>`);
-        skippedCount++;
-        continue;
+        return { status: 'skipped' };
       }
 
       try {
@@ -287,12 +286,12 @@ router.get("/translate-news", async (req: Request, res: Response) => {
 
         if (textsToTranslate.length > 0) {
           const translatedTexts = await translateBatch(textsToTranslate);
-          let index = 0;
+          let idx = 0;
           if (titleNeedsTranslation) {
-            translatedTitle = translatedTexts[index++];
+            translatedTitle = translatedTexts[idx++];
           }
           if (summaryNeedsTranslation) {
-            translatedSummary = translatedTexts[index++];
+            translatedSummary = translatedTexts[idx++];
           }
         }
 
@@ -328,17 +327,36 @@ router.get("/translate-news", async (req: Request, res: Response) => {
           .where(eq(aiNews.id, news.id));
 
         res.write(`<div class="log-entry">  ✓ 翻译完成并保存</div>`);
-        translatedCount++;
-
-        // 延迟避免 API 限流
-        await new Promise(resolve => setTimeout(resolve, 500));
-
+        return { status: 'success' };
       } catch (error) {
-        res.write(`<div class="log-entry">  ✗ 翻译失败: ${error}</div>`);
-        errorCount++;
+        res.write(`<div class="log-entry error">  ✗ 翻译失败: ${error}</div>`);
+        return { status: 'error' };
       }
+    };
 
-      res.write(`<div class="log-entry"></div>`);
+    // 并发处理，每批次 5 条
+    const BATCH_SIZE = 5;
+    for (let i = 0; i < internationalNews.length; i += BATCH_SIZE) {
+      const batch = internationalNews.slice(i, i + BATCH_SIZE);
+      res.write(`<div class="log-entry"><strong>🚀 并发处理第 ${Math.floor(i / BATCH_SIZE) + 1} 批次 (${batch.length} 条新闻)</strong></div>`);
+      
+      const results = await Promise.all(
+        batch.map((news, batchIndex) => translateNewsItem(news, i + batchIndex))
+      );
+
+      // 统计结果
+      results.forEach(result => {
+        if (result.status === 'success') translatedCount++;
+        else if (result.status === 'skipped') skippedCount++;
+        else if (result.status === 'error') errorCount++;
+      });
+
+      res.write(`<div class="log-entry">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>`);
+      
+      // 批次间延迟，避免 API 限流
+      if (i + BATCH_SIZE < internationalNews.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
 
     // 输出统计信息
