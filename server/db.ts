@@ -144,18 +144,18 @@ export async function getAiNewsList(input: {
 
     const conditions = [];
     
-    // 添加源过滤：只显示 8 个精选源的新闻
-    const allowedSources = [
-      '机器之心',
-      '量子位',
-      '36Kr',
-      'MIT Technology Review',
-      'ArXiv AI',
-      'OpenAI Blog',
-      'DeepMind Blog',
-      'TechCrunch'
-    ];
-    conditions.push(inArray(aiNews.source, allowedSources));
+    // 临时移除所有过滤，测试数据库是否有数据
+    // const allowedSources = [
+    //   '机器之心',
+    //   '量子位',
+    //   '36Kr',
+    //   'MIT Technology Review',
+    //   'ArXiv AI',
+    //   'OpenAI Blog',
+    //   'DeepMind Blog',
+    //   'TechCrunch'
+    // ];
+    // conditions.push(inArray(aiNews.source, allowedSources));
     if (input.category && input.category !== "全部") {
       conditions.push(eq(aiNews.category, input.category as any));
     }
