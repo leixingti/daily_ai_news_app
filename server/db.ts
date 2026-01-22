@@ -1,4 +1,4 @@
-import { eq, asc, desc, like, and, sql, inArray } from "drizzle-orm";
+import { eq, asc, desc, like, and, or, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { InsertUser, users, aiNews, favorites, searchHistory, readHistory, aiEvents, rssSources, systemConfig } from "../drizzle/schema";
