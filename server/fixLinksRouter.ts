@@ -23,7 +23,7 @@ router.post("/fix-links", async (req, res) => {
     const newsWithCDATA = await db
       .select()
       .from(aiNews)
-      .where(sql`${aiNews.url} LIKE '%CDATA%'`);
+      .where(sql`${aiNews.sourceUrl} LIKE '%CDATA%'`);
     
     console.log(`[FixLinks] Found ${newsWithCDATA.length} news with CDATA tags`);
     
@@ -31,16 +31,16 @@ router.post("/fix-links", async (req, res) => {
     
     for (const news of newsWithCDATA) {
       // 去除 CDATA 标签
-      const fixedUrl = news.url.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim();
+      const fixedUrl = news.sourceUrl.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim();
       
-      if (fixedUrl !== news.url) {
+      if (fixedUrl !== news.sourceUrl) {
         await db
           .update(aiNews)
-          .set({ url: fixedUrl })
+          .set({ sourceUrl: fixedUrl })
           .where(sql`${aiNews.id} = ${news.id}`);
         
         fixedCount++;
-        console.log(`[FixLinks] Fixed: ${news.id} - ${news.url} -> ${fixedUrl}`);
+        console.log(`[FixLinks] Fixed: ${news.id} - ${news.sourceUrl} -> ${fixedUrl}`);
       }
     }
     
