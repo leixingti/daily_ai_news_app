@@ -6,6 +6,56 @@ import { trpc } from "@/lib/trpc";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+/**
+ * 智能分段函数
+ * 将长段落按句子分割成多个段落，提升可读性
+ */
+function formatContent(text: string): string {
+  if (!text) return text;
+
+  // 如果内容已经有段落分隔（包含双换行符），直接返回
+  if (text.includes('\n\n')) {
+    return text;
+  }
+
+  // 移除多余的空格
+  text = text.trim().replace(/\s+/g, ' ');
+
+  // 按中文句号、感叹号、问号分割
+  const sentences = text.split(/([。！？])/);
+  
+  // 重新组合句子（保留标点符号）
+  const fullSentences: string[] = [];
+  for (let i = 0; i < sentences.length; i += 2) {
+    const sentence = sentences[i];
+    const punctuation = sentences[i + 1] || '';
+    if (sentence.trim()) {
+      fullSentences.push(sentence.trim() + punctuation);
+    }
+  }
+
+  // 每3-4句组成一个段落
+  const paragraphs: string[] = [];
+  let currentParagraph = '';
+  let sentenceCount = 0;
+  const sentencesPerParagraph = 3;
+
+  for (let i = 0; i < fullSentences.length; i++) {
+    currentParagraph += fullSentences[i];
+    sentenceCount++;
+
+    // 达到段落句子数，或者是最后一句
+    if (sentenceCount >= sentencesPerParagraph || i === fullSentences.length - 1) {
+      paragraphs.push(currentParagraph.trim());
+      currentParagraph = '';
+      sentenceCount = 0;
+    }
+  }
+
+  // 用双换行符连接段落
+  return paragraphs.join('\n\n');
+}
+
 export default function NewsDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
@@ -77,9 +127,14 @@ export default function NewsDetail() {
     ? news.titleZh 
     : news.title;
   
-  const displayContent = news.region === "international" && news.fullContentZh 
+  let displayContent = news.region === "international" && news.fullContentZh 
     ? news.fullContentZh 
     : news.content;
+
+  // 对翻译内容进行智能分段
+  if (news.region === "international" && news.fullContentZh) {
+    displayContent = formatContent(displayContent);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
