@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, ArrowLeft } from "lucide-react";
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function NewsDetail() {
   const { id } = useParams<{ id: string }>();
@@ -85,7 +87,8 @@ export default function NewsDetail() {
         {/* 返回按钮 */}
         <Button
           variant="ghost"
-          className="mb-6"          onClick={() => setLocation("/")}
+          className="mb-6"
+          onClick={() => setLocation("/")}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           返回
@@ -121,11 +124,11 @@ export default function NewsDetail() {
             <span>{news.source}</span>
           </div>
 
-          {/* 正文 */}
-          <div className="prose prose-lg max-w-none">
-            <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+          {/* 正文 - 使用 Markdown 渲染 */}
+          <div className="prose prose-lg max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-strong:text-gray-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-code:text-sm prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {displayContent}
-            </p>
+            </ReactMarkdown>
           </div>
 
           {/* 查看原文按钮 */}
