@@ -13,6 +13,47 @@ import { extractArticleContent } from "./contentExtractor";
 const router = Router();
 
 /**
+ * 批量翻译文本（优化版）
+ */
+async function translateBatch(texts: string[], targetLanguage: string = "zh"): Promise<string[]> {
+  if (texts.length === 0) return [];
+  if (texts.length === 1) return [await translateText(texts[0], targetLanguage)];
+
+  try {
+    const response = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional translator. Translate the following JSON array of texts to ${targetLanguage}. Return a JSON array with the same length, containing only the translated texts. Keep translations concise and accurate.`,
+        },
+        {
+          role: "user",
+          content: JSON.stringify(texts),
+        },
+      ],
+    });
+
+    const content = response.choices?.[0]?.message?.content;
+    if (typeof content === "string") {
+      try {
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed) && parsed.length === texts.length) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("[AdminAPI] Failed to parse batch translation result:", e);
+      }
+    }
+    
+    console.warn("[AdminAPI] Batch translation failed, falling back to individual translation");
+    return Promise.all(texts.map(text => translateText(text, targetLanguage)));
+  } catch (error) {
+    console.error("[AdminAPI] Batch translation failed:", error);
+    return Promise.all(texts.map(text => translateText(text, targetLanguage)));
+  }
+}
+
+/**
  * 翻译文本
  */
 async function translateText(text: string, targetLanguage: string = "zh"): Promise<string> {
@@ -235,22 +276,25 @@ router.get("/translate-news", async (req: Request, res: Response) => {
         let translatedSummary = news.summary;
         let translatedContent = news.content;
 
-        const promises = [];
+        // 使用批量翻译以提高效率
+        const textsToTranslate = [];
         if (titleNeedsTranslation) {
-          promises.push(translateText(news.title));
-        } else {
-          promises.push(Promise.resolve(news.title));
+          textsToTranslate.push(news.title);
         }
-        
         if (summaryNeedsTranslation) {
-          promises.push(translateText(news.summary));
-        } else {
-          promises.push(Promise.resolve(news.summary));
+          textsToTranslate.push(news.summary);
         }
 
-        const [titleResult, summaryResult] = await Promise.all(promises);
-        translatedTitle = titleResult;
-        translatedSummary = summaryResult;
+        if (textsToTranslate.length > 0) {
+          const translatedTexts = await translateBatch(textsToTranslate);
+          let index = 0;
+          if (titleNeedsTranslation) {
+            translatedTitle = translatedTexts[index++];
+          }
+          if (summaryNeedsTranslation) {
+            translatedSummary = translatedTexts[index++];
+          }
+        }
 
         res.write(`<div class="log-entry">  📝 译标题: ${translatedTitle.substring(0, 60)}${translatedTitle.length > 60 ? '...' : ''}</div>`);
 

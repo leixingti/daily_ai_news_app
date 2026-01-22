@@ -137,6 +137,50 @@ const INTERNATIONAL_RSS_SOURCES = [
 const ALL_RSS_SOURCES = [...DOMESTIC_RSS_SOURCES, ...INTERNATIONAL_RSS_SOURCES];
 
 /**
+ * 批量翻译文本（优化版）
+ * 将多个文本合并成一次 API 调用，提升效率
+ */
+async function translateBatch(texts: string[], targetLanguage: string = "zh"): Promise<string[]> {
+  if (texts.length === 0) return [];
+  if (texts.length === 1) return [await translateText(texts[0], targetLanguage)];
+
+  try {
+    const response = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional translator. Translate the following JSON array of texts to ${targetLanguage}. Return a JSON array with the same length, containing only the translated texts. Keep translations concise and accurate.`,
+        },
+        {
+          role: "user",
+          content: JSON.stringify(texts),
+        },
+      ],
+    });
+
+    const content = response.choices?.[0]?.message?.content;
+    if (typeof content === "string") {
+      try {
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed) && parsed.length === texts.length) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("[RSSNewsCrawler] Failed to parse batch translation result:", e);
+      }
+    }
+    
+    // 如果批量翻译失败，回退到逐条翻译
+    console.warn("[RSSNewsCrawler] Batch translation failed, falling back to individual translation");
+    return Promise.all(texts.map(text => translateText(text, targetLanguage)));
+  } catch (error) {
+    console.error("[RSSNewsCrawler] Batch translation failed:", error);
+    // 失败时回退到逐条翻译
+    return Promise.all(texts.map(text => translateText(text, targetLanguage)));
+  }
+}
+
+/**
  * 翻译文本（国外新闻翻译为中文）
  */
 async function translateText(text: string, targetLanguage: string = "zh"): Promise<string> {
@@ -251,11 +295,8 @@ async function parseRSSFeed(
         
         if (region === "international") {
           try {
-            // 并行翻译标题和描述以提高效率
-            const [titleResult, descResult] = await Promise.all([
-              translateText(title),
-              translateText(description)
-            ]);
+            // 使用批量翻译以提高效率（一次 API 调用翻译标题和描述）
+            const [titleResult, descResult] = await translateBatch([title, description]);
             translatedTitle = titleResult;
             translatedDescription = descResult;
             console.log(`[RSSNewsCrawler] Translated: "${title.substring(0, 50)}..." -> "${translatedTitle.substring(0, 50)}..."`);
