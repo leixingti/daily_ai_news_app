@@ -14,6 +14,9 @@ export async function runMigrations() {
 
   const client = new pg.Client({
     connectionString: ENV.databaseUrl,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
 
   try {
