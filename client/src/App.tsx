@@ -15,7 +15,7 @@ function Router() {
     <>
       <Navigation />
       <Switch>
-        <Route path="" component={Home} />
+        <Route path="/" component={Home} />
         <Route path="/events" component={EventsPage} />
         <Route path="/news/:id" component={NewsDetail} />
         <Route path="/404" component={NotFound} />
