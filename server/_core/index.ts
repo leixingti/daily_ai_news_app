@@ -85,20 +85,25 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     
-    // Start events crawler schedule
-    startEventsCrawlerSchedule();
-    
-    // Start real events crawler schedule
-    initializeRealEventsCrawlerSchedule();
-    
-    // Start real API crawler schedule
-    initializeRealApiCrawlerSchedule();
-    
-    // Start RSS news crawler schedule
-    initializeRSSNewsCrawlerSchedule();
-    
-    // Start news excerpt generator schedule
-    initializeNewsExcerptGeneratorSchedule();
+    // Delay crawler startup to ensure database is ready
+    setTimeout(() => {
+      console.log("[Server] Starting crawlers after 10 second delay...");
+      
+      // Start events crawler schedule
+      startEventsCrawlerSchedule();
+      
+      // Start real events crawler schedule
+      initializeRealEventsCrawlerSchedule();
+      
+      // Start real API crawler schedule
+      initializeRealApiCrawlerSchedule();
+      
+      // Start RSS news crawler schedule
+      initializeRSSNewsCrawlerSchedule();
+      
+      // Start news excerpt generator schedule
+      initializeNewsExcerptGeneratorSchedule();
+    }, 10000); // 10 second delay
   });
 }
 
