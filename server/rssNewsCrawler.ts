@@ -11,6 +11,40 @@ import { eq, and } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 import { extractArticleContent } from "./contentExtractor";
 
+/**
+ * 解码 HTML 实体
+ */
+function decodeHTMLEntities(text: string): string {
+  const entities: Record<string, string> = {
+    '&lt;': '<',
+    '&gt;': '>',
+    '&amp;': '&',
+    '&quot;': '"',
+    '&apos;': "'",
+    '&#39;': "'",
+    '&nbsp;': ' ',
+  };
+  
+  let decoded = text;
+  
+  // 替换命名实体
+  for (const [entity, char] of Object.entries(entities)) {
+    decoded = decoded.replace(new RegExp(entity, 'g'), char);
+  }
+  
+  // 替换数字实体（如 &#60;）
+  decoded = decoded.replace(/&#(\d+);/g, (match, dec) => {
+    return String.fromCharCode(parseInt(dec, 10));
+  });
+  
+  // 替换十六进制实体（如 &#x3C;）
+  decoded = decoded.replace(/&#x([0-9A-Fa-f]+);/g, (match, hex) => {
+    return String.fromCharCode(parseInt(hex, 16));
+  });
+  
+  return decoded;
+}
+
 interface RSSItem {
   title: string;
   description: string;
@@ -239,15 +273,23 @@ async function parseRSSFeed(
 
       // 提取标题
       const titleMatch = /<title>([\s\S]*?)<\/title>/.exec(itemContent);
-      const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, "").trim() : "";
+      let title = titleMatch ? titleMatch[1] : "";
+      
+      // 先解码 HTML 实体，再移除 HTML 标签
+      title = decodeHTMLEntities(title);
+      title = title.replace(/<[^>]*>/g, "").trim();
 
       // 提取描述
       const descriptionMatch = /<description>([\s\S]*?)<\/description>/.exec(
         itemContent
       );
       let description = descriptionMatch
-        ? descriptionMatch[1].replace(/<[^>]*>/g, "").trim()
+        ? descriptionMatch[1]
         : "";
+      
+      // 先解码 HTML 实体，再移除 HTML 标签
+      description = decodeHTMLEntities(description);
+      description = description.replace(/<[^>]*>/g, "").trim();
 
       // 提取链接
       const linkMatch = /<link>([\s\S]*?)<\/link>/.exec(itemContent);
