@@ -70,10 +70,6 @@ export const appRouter = router({
           let query = db.select().from(aiNews);
           const conditions = [];
           
-          // 添加时间过滤：只显示北京时间 2026-01-22 09:00:00 之后的新闻
-          const cutoffDate = new Date('2026-01-22T01:00:00.000Z'); // UTC 时间，对应北京时间 09:00
-          conditions.push(gte(aiNews.publishedAt, cutoffDate));
-          
           // 添加源过滤：只显示 8 个精选源的新闻
           const allowedSources = [
             '机器之心',
