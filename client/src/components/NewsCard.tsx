@@ -13,6 +13,9 @@ interface NewsCardProps {
   title: string;
   summary: string;
   content?: string;
+  titleZh?: string | null;
+  summaryZh?: string | null;
+  fullContentZh?: string | null;
   category: string;
   region: string;
   publishedAt: string | Date;
@@ -40,6 +43,9 @@ export default function NewsCard({
   title,
   summary,
   content,
+  titleZh,
+  summaryZh,
+  fullContentZh,
   category,
   region,
   publishedAt,
@@ -49,6 +55,10 @@ export default function NewsCard({
   onMarkRead,
   onFavoriteChange,
 }: NewsCardProps) {
+  // 对于国际新闻，优先显示翻译后的内容
+  const displayTitle = region === "international" && titleZh ? titleZh : title;
+  const displaySummary = region === "international" && summaryZh ? summaryZh : summary;
+  const displayContent = region === "international" && fullContentZh ? fullContentZh : content;
   const { user } = useAuth();
   const [localIsFavorited, setLocalIsFavorited] = useState(isFavorited);
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +134,7 @@ export default function NewsCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 space-y-2">
             <h3 className="font-semibold text-lg line-clamp-2 hover:text-blue-600">
-              {title}
+              {displayTitle}
             </h3>
             <div className="flex gap-2 flex-wrap">
               <Badge className={categoryColors[category] || "bg-gray-100 text-gray-800"}>
@@ -137,7 +147,7 @@ export default function NewsCard({
         </div>
 
         {/* Summary */}
-        <p className="text-sm text-gray-600 line-clamp-2">{summary}</p>
+        <p className="text-sm text-gray-600 line-clamp-2">{displaySummary}</p>
 
         {/* Footer with date and actions */}
         <div className="flex items-center justify-between pt-2 border-t">
@@ -177,7 +187,7 @@ export default function NewsCard({
               <Share2 className="h-4 w-4" />
             </Button>
 
-            {content && content.length > summary.length && (
+            {displayContent && displayContent.length > displaySummary.length && (
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
@@ -191,7 +201,7 @@ export default function NewsCard({
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-xl">{title}</DialogTitle>
+                    <DialogTitle className="text-xl">{displayTitle}</DialogTitle>
                   </DialogHeader>
                   <div className="mt-4 space-y-4">
                     <div className="flex gap-2">
@@ -201,7 +211,7 @@ export default function NewsCard({
                       <Badge variant="outline">{regionLabels[region] || region}</Badge>
                     </div>
                     <div className="prose prose-sm max-w-none">
-                      <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{content}</p>
+                      <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{displayContent}</p>
                     </div>
                     <div className="flex justify-between items-center pt-4 border-t">
                       <span className="text-sm text-gray-500">{formatDate(publishedAt)}</span>

@@ -316,13 +316,13 @@ router.get("/translate-news", async (req: Request, res: Response) => {
           translatedContent = translatedSummary;
         }
 
-        // 更新数据库
+        // 更新数据库 - 保存到翻译字段，保留原始内容
         await db
           .update(aiNews)
           .set({
-            title: translatedTitle,
-            summary: translatedSummary,
-            content: translatedContent,
+            titleZh: translatedTitle,
+            summaryZh: translatedSummary,
+            fullContentZh: translatedContent,
             updatedAt: new Date(),
           })
           .where(eq(aiNews.id, news.id));
