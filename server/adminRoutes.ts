@@ -9,6 +9,7 @@ import { aiNews } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 import { extractArticleContent } from "./contentExtractor";
+import { runMigrations } from "./migrate";
 
 const router = Router();
 
@@ -407,6 +408,24 @@ router.get("/translate-news", async (req: Request, res: Response) => {
 </html>
   `);
   res.end();
+});
+
+/**
+ * POST /api/admin/run-migration
+ * 手动触发数据库迁移
+ */
+router.post("/run-migration", async (req: Request, res: Response) => {
+  try {
+    console.log("[AdminAPI] Manual migration triggered");
+    await runMigrations();
+    res.json({ success: true, message: "Migration completed successfully" });
+  } catch (error) {
+    console.error("[AdminAPI] Migration failed:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : "Unknown error" 
+    });
+  }
 });
 
 /**
