@@ -12,6 +12,7 @@ import { initializeRealEventsCrawlerSchedule } from "../realEventsCrawler";
 import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
 import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
 import { initializeNewsExcerptGeneratorSchedule } from "../newsExcerptGenerator";
+import adminRoutes from "../adminRoutes";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -40,6 +41,8 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // Admin routes under /api/admin
+  app.use("/api/admin", adminRoutes);
   // tRPC API
   app.use(
     "/api/trpc",
