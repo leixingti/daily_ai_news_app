@@ -101,22 +101,28 @@ export function EventCard({
               className="flex-1"
             >
               <a href={registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                报名注册
+                查看详情
                 <ExternalLink className="w-3 h-3" />
               </a>
             </Button>
           )}
-          {onDetail && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDetail(id)}
-              className="flex-1"
-            >
-              查看详情
-            </Button>
-          )}
         </div>
+        
+        {/* 数据来源 */}
+        {registrationUrl && (
+          <div className="pt-2 border-t text-xs text-muted-foreground">
+            <span>数据来源：</span>
+            <a 
+              href={registrationUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline inline-flex items-center gap-1"
+            >
+              会议官网
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
