@@ -9,7 +9,7 @@ import { aiNews } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 import { extractArticleContent } from "./contentExtractor";
-import translate from '@vitalets/google-translate-api';
+import translate from 'translate-google';
 import { runMigrations } from "./migrate";
 
 const router = Router();
@@ -30,7 +30,7 @@ async function translateBatch(texts: string[], targetLanguage: string = "zh-CN")
 async function translateText(text: string, targetLanguage: string = "zh-CN"): Promise<string> {
   try {
     const result = await translate(text, { to: targetLanguage });
-    return result.text;
+    return result; // translate-google 直接返回字符串
   } catch (error) {
     console.error("[AdminAPI] Translation failed:", error);
     return text;
