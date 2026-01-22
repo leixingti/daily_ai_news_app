@@ -395,6 +395,51 @@ router.post("/run-migration", async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/admin/trigger-events-crawler
+ * 手动触发会议爬虫
+ */
+router.get("/trigger-events-crawler", async (req: Request, res: Response) => {
+  try {
+    console.log("[AdminAPI] Triggering events crawler...");
+    
+    // 检查数据库连接
+    const db = await getDb();
+    if (!db) {
+      return res.status(500).json({
+        success: false,
+        message: "Database connection failed",
+        error: "DATABASE_URL not set or database not available",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    
+    // 运行爬虫
+    const { runEventsCrawler } = await import("./eventsCrawler");
+    await runEventsCrawler();
+    
+    // 查询数据库中的会议数量
+    const { aiEvents } = await import("../drizzle/schema");
+    const events = await db.select().from(aiEvents);
+    
+    res.json({
+      success: true,
+      message: "Events crawler triggered successfully",
+      eventsCount: events.length,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("[AdminAPI] Failed to trigger crawler:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to trigger events crawler",
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
+/**
  * GET /api/admin/status
  * 健康检查
  */
