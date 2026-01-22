@@ -61,7 +61,7 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const { getDb } = await import("./db");
         const { aiNews } = await import("../drizzle/schema");
-        const { eq, desc, like, and, or, gte } = await import("drizzle-orm");
+        const { eq, desc, like, and, or, gte, inArray } = await import("drizzle-orm");
         
         const db = await getDb();
         if (!db) return {};
@@ -73,6 +73,19 @@ export const appRouter = router({
           // 添加时间过滤：只显示北京时间 2026-01-22 09:00:00 之后的新闻
           const cutoffDate = new Date('2026-01-22T01:00:00.000Z'); // UTC 时间，对应北京时间 09:00
           conditions.push(gte(aiNews.publishedAt, cutoffDate));
+          
+          // 添加源过滤：只显示 8 个精选源的新闻
+          const allowedSources = [
+            '机器之心',
+            '量子位',
+            '36Kr',
+            'MIT Technology Review',
+            'ArXiv AI',
+            'OpenAI Blog',
+            'DeepMind Blog',
+            'TechCrunch'
+          ];
+          conditions.push(inArray(aiNews.source, allowedSources));
           
           if (input.category && input.category !== "all") {
             conditions.push(eq(aiNews.category, input.category as any));

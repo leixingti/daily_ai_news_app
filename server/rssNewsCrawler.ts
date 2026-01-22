@@ -1,7 +1,7 @@
 /**
  * RSS 新闻爬虫系统
- * 从 20 个 RSS 源（国内 10 个，国外 10 个）抓取 AI 相关新闻
- * 国外新闻自动翻译，每 5 分钟自动更新
+ * 从 8 个精选 RSS 源（国内 3 个，国外 5 个）抓取 AI 相关新闻
+ * 国外新闻自动翻译，每 10 分钟自动更新
  */
 
 import axios from "axios";
@@ -57,7 +57,7 @@ interface RSSItem {
 }
 
 /**
- * 国内 RSS 源配置（10 个）
+ * 国内 RSS 源配置（3 个精选）
  */
 const DOMESTIC_RSS_SOURCES = [
   {
@@ -66,23 +66,8 @@ const DOMESTIC_RSS_SOURCES = [
     region: "domestic" as const,
   },
   {
-    name: "新智元",
-    url: "https://www.aizhingyuan.com/feed",
-    region: "domestic" as const,
-  },
-  {
     name: "量子位",
     url: "https://www.qbitai.com/feed",
-    region: "domestic" as const,
-  },
-  {
-    name: "专知",
-    url: "https://www.zhuanzhi.ai/feed",
-    region: "domestic" as const,
-  },
-  {
-    name: "AI 科技评论",
-    url: "https://www.aitechtalk.com/feed",
     region: "domestic" as const,
   },
   {
@@ -90,47 +75,12 @@ const DOMESTIC_RSS_SOURCES = [
     url: "https://36kr.com/feed",
     region: "domestic" as const,
   },
-  {
-    name: "IT 之家",
-    url: "https://www.ithome.com/feed",
-    region: "domestic" as const,
-  },
-  {
-    name: "极客公园",
-    url: "https://www.geekpark.net/feed",
-    region: "domestic" as const,
-  },
-  {
-    name: "爱范儿",
-    url: "https://www.ifanr.com/feed",
-    region: "domestic" as const,
-  },
-  {
-    name: "钛媒体",
-    url: "https://www.tmtpost.com/feed",
-    region: "domestic" as const,
-  },
 ];
 
 /**
- * 国外 RSS 源配置（10 个）
+ * 国外 RSS 源配置（5 个精选）
  */
 const INTERNATIONAL_RSS_SOURCES = [
-  {
-    name: "Hacker News",
-    url: "https://news.ycombinator.com/rss",
-    region: "international" as const,
-  },
-  {
-    name: "TechCrunch",
-    url: "https://techcrunch.com/feed/",
-    region: "international" as const,
-  },
-  {
-    name: "The Verge",
-    url: "https://www.theverge.com/rss/index.xml",
-    region: "international" as const,
-  },
   {
     name: "MIT Technology Review",
     url: "https://www.technologyreview.com/feed.rss",
@@ -152,18 +102,8 @@ const INTERNATIONAL_RSS_SOURCES = [
     region: "international" as const,
   },
   {
-    name: "Towards Data Science",
-    url: "https://towardsdatascience.com/feed",
-    region: "international" as const,
-  },
-  {
-    name: "Analytics Vidhya",
-    url: "https://www.analyticsvidhya.com/feed/",
-    region: "international" as const,
-  },
-  {
-    name: "Medium AI",
-    url: "https://medium.com/feed/tag/artificial-intelligence",
+    name: "TechCrunch",
+    url: "https://techcrunch.com/feed/",
     region: "international" as const,
   },
 ];
