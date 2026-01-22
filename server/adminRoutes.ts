@@ -25,7 +25,7 @@ async function translateBatch(texts: string[], targetLanguage: string = "zh"): P
       messages: [
         {
           role: "system",
-          content: `You are a professional translator. Translate the following JSON array of texts to ${targetLanguage}. Return a JSON array with the same length, containing only the translated texts. Keep translations concise and accurate.`,
+          content: `You are a professional translator. Translate the following JSON array of texts to Simplified Chinese (简体中文). Return ONLY a JSON array with the same length, containing the translated texts. Do not include any explanations or additional text.`,
         },
         {
           role: "user",
@@ -63,7 +63,7 @@ async function translateText(text: string, targetLanguage: string = "zh"): Promi
       messages: [
         {
           role: "system",
-          content: `You are a professional translator. Translate the following text to ${targetLanguage}. Keep the translation concise and accurate. Only return the translated text without any explanation.`,
+          content: `You are a professional translator. Translate the following text to Simplified Chinese (简体中文). Keep the translation concise and accurate. Only return the translated text without any explanation.`,
         },
         {
           role: "user",
