@@ -233,7 +233,10 @@ async function parseRSSFeed(
 
       // 提取链接
       const linkMatch = /<link>([\s\S]*?)<\/link>/.exec(itemContent);
-      const link = linkMatch ? linkMatch[1].trim() : "";
+      let link = linkMatch ? linkMatch[1].trim() : "";
+      
+      // 去除 CDATA 标签（如果存在）
+      link = link.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim();
 
       // 提取发布日期
       const pubDateMatch = /<pubDate>([\s\S]*?)<\/pubDate>/.exec(itemContent);
