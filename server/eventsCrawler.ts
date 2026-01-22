@@ -273,15 +273,37 @@ async function saveOrUpdateEvent(event: EventData): Promise<void> {
 
 export async function runEventsCrawler(): Promise<void> {
   console.log("[EventsCrawler] Starting crawler...");
+  console.log("[EventsCrawler] DATABASE_URL:", process.env.DATABASE_URL ? "SET" : "NOT SET");
+  
   try {
+    const db = await getDb();
+    if (!db) {
+      console.error("[EventsCrawler] Database connection failed");
+      return;
+    }
+    console.log("[EventsCrawler] Database connected successfully");
+    
     const events = await crawlAIConferences();
     console.log(`[EventsCrawler] Found ${events.length} events`);
 
+    let successCount = 0;
+    let failCount = 0;
+    
     for (const event of events) {
-      await saveOrUpdateEvent(event);
+      try {
+        await saveOrUpdateEvent(event);
+        successCount++;
+      } catch (error) {
+        failCount++;
+        console.error(`[EventsCrawler] Failed to save event ${event.name}:`, error);
+      }
     }
 
-    console.log("[EventsCrawler] Events crawler completed successfully");
+    console.log(`[EventsCrawler] Completed: ${successCount} success, ${failCount} failed`);
+    
+    // 验证插入结果
+    const allEvents = await db.select().from(aiEvents);
+    console.log(`[EventsCrawler] Total events in database: ${allEvents.length}`);
   } catch (error) {
     console.error("[EventsCrawler] Crawler failed:", error);
   }
