@@ -304,7 +304,12 @@ export default function Home() {
                       </Badge>
                     </div>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                      {group.news.map((news: any) => (
+                      {group.news.map((news: any) => {
+                        // 对于国际新闻，优先显示翻译后的内容
+                        const displayTitle = news.region === "international" && news.titleZh ? news.titleZh : news.title;
+                        const displaySummary = news.region === "international" && news.summaryZh ? news.summaryZh : ((news as any).excerpt || news.summary);
+                        const displayContent = news.region === "international" && news.fullContentZh ? news.fullContentZh : news.content;
+                        return (
                         <Card
                           key={news.id}
                           className={`overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${
@@ -321,7 +326,7 @@ export default function Home() {
                                 <Badge variant="outline" className="text-xs">已读</Badge>
                               )}
                             </div>
-                            <CardTitle className="text-base line-clamp-2">{news.title}</CardTitle>
+                            <CardTitle className="text-base line-clamp-2">{displayTitle}</CardTitle>
                             <CardDescription className="text-xs">
                           <Badge variant="outline" className={regionColors[news.region as keyof typeof regionColors] || "bg-gray-100 text-gray-700"}>
                             {regionLabels[news.region as keyof typeof regionLabels] || news.region}
@@ -331,7 +336,7 @@ export default function Home() {
                           <CardContent className="pb-3">
                             {/* 显示摘要或原始摘要 */}
                             <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-                              {(news as any).excerpt || news.summary}
+                              {displaySummary}
                             </p>
                             {/* 国外新闻显示翻译摘要 */}
                             {news.region === "international" && (news as any).excerptTranslated && (
@@ -358,7 +363,7 @@ export default function Home() {
                                   </DialogTrigger>
                                   <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                                     <DialogHeader>
-                                      <DialogTitle className="text-xl">{news.title}</DialogTitle>
+                                      <DialogTitle className="text-xl">{displayTitle}</DialogTitle>
                                     </DialogHeader>
                                     <div className="mt-4 space-y-4">
                                       <div className="flex gap-2">
@@ -370,7 +375,7 @@ export default function Home() {
                                         </Badge>
                                       </div>
                                       <div className="prose prose-sm max-w-none">
-                                        <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{news.content}</p>
+                                        <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{displayContent}</p>
                                       </div>
                                       <div className="flex justify-between items-center pt-4 border-t">
                                         <span className="text-sm text-gray-500">{formatDate(news.publishedAt)}</span>
@@ -399,7 +404,7 @@ export default function Home() {
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
+                      );});}
                     </div>
                   </div>
                 ))}
