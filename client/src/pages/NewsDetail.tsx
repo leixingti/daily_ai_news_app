@@ -8,7 +8,7 @@ export default function NewsDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   
-  const { data: news, isLoading } = trpc.detail.useQuery(
+  const { data: news, isLoading } = trpc.news.detail.useQuery(
     { id: Number(id) },
     { enabled: !!id }
   );
