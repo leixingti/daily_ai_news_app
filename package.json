@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "translate:batch": "tsx batch-translate-news.ts"
+    "translate:batch": "tsx batch-translate-news.ts",
+    "events:insert": "tsx insert-events-directly.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",
