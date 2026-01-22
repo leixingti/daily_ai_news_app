@@ -52,6 +52,16 @@ export async function runMigrations() {
     `);
     console.log(`[Migration] Updated ${result.rowCount} records with source`);
 
+    // 添加翻译字段（如果不存在）
+    console.log("[Migration] Adding translation columns if not exist...");
+    await client.query(`
+      ALTER TABLE ai_news 
+      ADD COLUMN IF NOT EXISTS "titleZh" TEXT,
+      ADD COLUMN IF NOT EXISTS "summaryZh" TEXT,
+      ADD COLUMN IF NOT EXISTS "fullContentZh" TEXT;
+    `);
+    console.log("[Migration] Translation columns added or already exist");
+
     console.log("[Migration] All migrations completed successfully");
   } catch (error) {
     console.error("[Migration] Migration failed:", error);

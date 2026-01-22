@@ -54,6 +54,9 @@ export const aiNews = pgTable("ai_news", {
   translationStatus: integer("translationStatus").default(1).notNull(),
   translationRetries: integer("translationRetries").default(0).notNull(),
   source: varchar("source", { length: 100 }),
+  titleZh: text("titleZh"),
+  summaryZh: text("summaryZh"),
+  fullContentZh: text("fullContentZh"),
 });
 
 export type AiNews = typeof aiNews.$inferSelect;
