@@ -265,7 +265,17 @@ router.get("/translate-news", async (req: Request, res: Response) => {
       const summaryNeedsTranslation = isEnglish(news.summary);
 
       if (!titleNeedsTranslation && !summaryNeedsTranslation) {
-        res.write(`<div class="log-entry">  ✓ 已是中文，跳过</div>`);
+        res.write(`<div class="log-entry">  ✓ 已是中文，保存原文到翻译字段</div>`);
+        // 即使不需要翻译，也要保存原文到翻译字段
+        await db
+          .update(aiNews)
+          .set({
+            titleZh: news.title,
+            summaryZh: news.summary,
+            fullContentZh: news.content,
+            updatedAt: new Date(),
+          })
+          .where(eq(aiNews.id, news.id));
         return { status: 'skipped' };
       }
 
