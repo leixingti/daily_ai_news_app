@@ -9,6 +9,7 @@ import { Search } from "lucide-react";
 
 export default function EventsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [region, setRegion] = useState<string>(); // 地区筛选：国内/国外
   const [type, setType] = useState<string>();
   const [location, setLocation] = useState<string>();
   const [timeStatus, setTimeStatus] = useState<string>();
@@ -19,6 +20,7 @@ export default function EventsPage() {
   const { data: eventsData, isLoading } = trpc.events.list.useQuery({
     limit: 100,
     offset: 0,
+    region, // 添加地区筛选
     type,
     location,
     timeStatus,
@@ -77,6 +79,33 @@ export default function EventsPage() {
               />
             </div>
             <Button onClick={handleSearch}>搜索</Button>
+          </div>
+        </div>
+
+        {/* 地区筛选 */}
+        <div className="mb-6">
+          <div className="flex gap-2">
+            <Button
+              variant={region === undefined ? "default" : "outline"}
+              size="sm"
+              onClick={() => setRegion(undefined)}
+            >
+              全部
+            </Button>
+            <Button
+              variant={region === "domestic" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setRegion("domestic")}
+            >
+              国内会议
+            </Button>
+            <Button
+              variant={region === "international" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setRegion("international")}
+            >
+              国外会议
+            </Button>
           </div>
         </div>
 
