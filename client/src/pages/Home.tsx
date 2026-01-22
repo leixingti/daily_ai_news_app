@@ -296,8 +296,13 @@ export default function Home() {
             ) : newsList && newsList.length > 0 ? (
               <div className="space-y-8">
                 {groupedNews.map((group: any) => (
-                  <div key={group.date}>
-                    <h2 className="text-lg font-semibold mb-4 text-foreground">{group.date}</h2>
+                  <div key={group.group}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <h2 className="text-lg font-semibold text-foreground">{group.group}</h2>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                        {group.news.length} 条新闻
+                      </Badge>
+                    </div>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                       {group.news.map((news: any) => (
                         <Card
