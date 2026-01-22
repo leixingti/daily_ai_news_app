@@ -16,6 +16,7 @@ import adminRoutes from "../adminRoutes";
 import { testRouter } from "../testRouter";
 import fixLinksRouter from "../fixLinksRouter";
 import { runMigrations } from "../migrate";
+import { crawlerEndpoint } from "../crawlerEndpoint";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -57,6 +58,8 @@ async function startServer() {
   app.use("/api/test", testRouter);
   // Fix links routes under /api/fix
   app.use("/api/fix", fixLinksRouter);
+  // Crawler endpoint
+  app.use(crawlerEndpoint);
   // tRPC API
   app.use(
     "/api/trpc",
