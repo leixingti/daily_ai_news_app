@@ -13,6 +13,7 @@ import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
 import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
 import { initializeNewsExcerptGeneratorSchedule } from "../newsExcerptGenerator";
 import adminRoutes from "../adminRoutes";
+import { testRouter } from "../testRouter";
 import { runMigrations } from "../migrate";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -51,6 +52,8 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Admin routes under /api/admin
   app.use("/api/admin", adminRoutes);
+  // Test routes under /api/test
+  app.use("/api/test", testRouter);
   // tRPC API
   app.use(
     "/api/trpc",
