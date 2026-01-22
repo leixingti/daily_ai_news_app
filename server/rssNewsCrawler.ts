@@ -243,14 +243,28 @@ async function parseRSSFeed(
       );
 
       if (isAIRelated && title && link) {
-        // 国外新闻翻译
+        // 国外新闻翻译（同时翻译标题和描述）
+        let translatedTitle = title;
+        let translatedDescription = description;
+        
         if (region === "international") {
-          description = await translateText(description);
+          try {
+            // 并行翻译标题和描述以提高效率
+            const [titleResult, descResult] = await Promise.all([
+              translateText(title),
+              translateText(description)
+            ]);
+            translatedTitle = titleResult;
+            translatedDescription = descResult;
+            console.log(`[RSSNewsCrawler] Translated: "${title.substring(0, 50)}..." -> "${translatedTitle.substring(0, 50)}..."`);
+          } catch (error) {
+            console.error(`[RSSNewsCrawler] Translation failed for item, using original text:`, error);
+          }
         }
 
         items.push({
-          title,
-          description,
+          title: translatedTitle,
+          description: translatedDescription,
           link,
           pubDate,
           source: sourceName,
