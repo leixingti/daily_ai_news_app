@@ -244,7 +244,7 @@ router.get("/translate-news", async (req: Request, res: Response) => {
       .select()
       .from(aiNews)
       .where(eq(aiNews.region, "international"))
-      .limit(50);
+      .limit(200);
 
     res.write(`<div class="log-entry">✓ 找到 ${internationalNews.length} 条国际新闻</div>`);
     res.write(`<div class="log-entry">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>`);
