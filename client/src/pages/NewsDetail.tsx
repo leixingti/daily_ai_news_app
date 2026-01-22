@@ -8,7 +8,7 @@ import remarkGfm from "remark-gfm";
 
 /**
  * 智能分段函数
- * 将长段落按句子分割成多个段落，提升可读性
+ * 将长段落按句子或字符数分割成多个段落，提升可读性
  */
 function formatContent(text: string): string {
   if (!text) return text;
@@ -21,8 +21,8 @@ function formatContent(text: string): string {
   // 移除多余的空格
   text = text.trim().replace(/\s+/g, ' ');
 
-  // 按中文句号、感叹号、问号分割
-  const sentences = text.split(/([。！？])/);
+  // 按中英文句号、感叹号、问号分割（支持中英文标点）
+  const sentences = text.split(/([。！？.!?])/);
   
   // 重新组合句子（保留标点符号）
   const fullSentences: string[] = [];
@@ -34,6 +34,18 @@ function formatContent(text: string): string {
     }
   }
 
+  // 如果没有识别到句子（没有标点符号），按字符数分段
+  if (fullSentences.length <= 1 && text.length > 500) {
+    const paragraphs: string[] = [];
+    const charsPerParagraph = 400; // 每段约400字符
+    
+    for (let i = 0; i < text.length; i += charsPerParagraph) {
+      paragraphs.push(text.substring(i, i + charsPerParagraph));
+    }
+    
+    return paragraphs.join('\n\n');
+  }
+
   // 每3-4句组成一个段落
   const paragraphs: string[] = [];
   let currentParagraph = '';
@@ -41,7 +53,7 @@ function formatContent(text: string): string {
   const sentencesPerParagraph = 3;
 
   for (let i = 0; i < fullSentences.length; i++) {
-    currentParagraph += fullSentences[i];
+    currentParagraph += fullSentences[i] + ' ';
     sentenceCount++;
 
     // 达到段落句子数，或者是最后一句
