@@ -53,14 +53,16 @@ export const aiNews = pgTable("ai_news", {
   similarityScore: integer("similarityScore").default(0).notNull(),
   translationStatus: integer("translationStatus").default(1).notNull(),
   translationRetries: integer("translationRetries").default(0).notNull(),
-  excerpt: text("excerpt"),
-  excerptTranslated: text("excerptTranslated"),
-  excerptGeneratedAt: timestamp("excerptGeneratedAt"),
-  source: varchar("source", { length: 100 }),
 });
 
 export type AiNews = typeof aiNews.$inferSelect;
 export type InsertAiNews = typeof aiNews.$inferInsert;
+
+// TODO: Add these columns after database migration is fixed
+// excerpt: text("excerpt"),
+// excerptTranslated: text("excerptTranslated"),
+// excerptGeneratedAt: timestamp("excerptGeneratedAt"),
+// source: varchar("source", { length: 100 }),
 
 /**
  * AI 业界会议表
