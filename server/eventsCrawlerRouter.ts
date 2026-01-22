@@ -7,18 +7,10 @@ import { TRPCError } from "@trpc/server";
  */
 export const eventsCrawlerRouter = router({
   /**
-   * 手动触发爬虫任务（仅管理员）
+   * 手动触发爬虫任务（公开访问）
    */
-  triggerCrawl: protectedProcedure
-    .mutation(async ({ ctx }) => {
-      // 检查是否为管理员
-      if (ctx.user?.role !== "admin") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only admins can trigger crawler",
-        });
-      }
-
+  triggerCrawl: publicProcedure
+    .mutation(async () => {
       try {
         await runEventsCrawler();
         return {
