@@ -9,6 +9,7 @@ import { aiNews } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 import { extractArticleContent } from "./contentExtractor";
+import translate from '@vitalets/google-translate-api';
 import { runMigrations } from "./migrate";
 
 const router = Router();
@@ -16,65 +17,20 @@ const router = Router();
 /**
  * 批量翻译文本（优化版）
  */
-async function translateBatch(texts: string[], targetLanguage: string = "zh"): Promise<string[]> {
+async function translateBatch(texts: string[], targetLanguage: string = "zh-CN"): Promise<string[]> {
   if (texts.length === 0) return [];
-  if (texts.length === 1) return [await translateText(texts[0], targetLanguage)];
-
-  try {
-    const response = await invokeLLM({
-      messages: [
-        {
-          role: "system",
-          content: `You are a professional translator. Translate the following JSON array of texts to Simplified Chinese (简体中文). Return ONLY a JSON array with the same length, containing the translated texts. Do not include any explanations or additional text.`,
-        },
-        {
-          role: "user",
-          content: JSON.stringify(texts),
-        },
-      ],
-    });
-
-    const content = response.choices?.[0]?.message?.content;
-    if (typeof content === "string") {
-      try {
-        const parsed = JSON.parse(content);
-        if (Array.isArray(parsed) && parsed.length === texts.length) {
-          return parsed;
-        }
-      } catch (e) {
-        console.error("[AdminAPI] Failed to parse batch translation result:", e);
-      }
-    }
-    
-    console.warn("[AdminAPI] Batch translation failed, falling back to individual translation");
-    return Promise.all(texts.map(text => translateText(text, targetLanguage)));
-  } catch (error) {
-    console.error("[AdminAPI] Batch translation failed:", error);
-    return Promise.all(texts.map(text => translateText(text, targetLanguage)));
-  }
+  
+  // Google Translate API 不支持批量翻译，使用并发单独翻译
+  return Promise.all(texts.map(text => translateText(text, targetLanguage)));
 }
 
 /**
  * 翻译文本
  */
-async function translateText(text: string, targetLanguage: string = "zh"): Promise<string> {
+async function translateText(text: string, targetLanguage: string = "zh-CN"): Promise<string> {
   try {
-    const response = await invokeLLM({
-      messages: [
-        {
-          role: "system",
-          content: `You are a professional translator. Translate the following text to Simplified Chinese (简体中文). Keep the translation concise and accurate. Only return the translated text without any explanation.`,
-        },
-        {
-          role: "user",
-          content: text,
-        },
-      ],
-    });
-
-    const content = response.choices?.[0]?.message?.content;
-    const translatedText = typeof content === "string" ? content : text;
-    return translatedText;
+    const result = await translate(text, { to: targetLanguage });
+    return result.text;
   } catch (error) {
     console.error("[AdminAPI] Translation failed:", error);
     return text;
