@@ -87,7 +87,7 @@ async function startServer() {
     
     // Delay crawler startup to ensure database is ready
     setTimeout(() => {
-      console.log("[Server] Starting crawlers after 10 second delay...");
+      console.log("[Server] Starting crawlers after 30 second delay...");
       
       // Start events crawler schedule
       startEventsCrawlerSchedule();
@@ -103,7 +103,7 @@ async function startServer() {
       
       // Start news excerpt generator schedule
       initializeNewsExcerptGeneratorSchedule();
-    }, 10000); // 10 second delay
+    }, 30000); // 30 second delay
   });
 }
 

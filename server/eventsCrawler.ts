@@ -56,7 +56,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "业界领袖、技术专家",
       agenda: "主题演讲、分论坛、技术展示、投融资对接",
       expectedAttendees: 3000,
-      url: "https://example.com/ai-app-2025",
+      url: "https://example.com/events/ai-app-2025",
     },
     {
       name: "LLM大模型技术论坛2025",
@@ -70,7 +70,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "模型研究专家、业界从业者",
       agenda: "技术演讲、产品演示、业界对话",
       expectedAttendees: 2500,
-      url: "https://example.com/llm-2025",
+      url: "https://example.com/events/llm-2025",
     },
     {
       name: "AI与业务整合峰会",
@@ -84,7 +84,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "企业主管、技术总监",
       agenda: "案例研究、技术分享、产业应用",
       expectedAttendees: 2000,
-      url: "https://example.com/ai-business-2025",
+      url: "https://example.com/events/ai-business-2025",
     },
     {
       name: "2025年AI开源社区大会",
@@ -98,7 +98,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "开源项目维护者、社区领袖",
       agenda: "项目分享、技术讨论、社区建设",
       expectedAttendees: 5000,
-      url: "https://example.com/ai-opensource-2025",
+      url: "https://example.com/events/ai-opensource-2025",
     },
     {
       name: "2025年计算机视觉技术大会",
@@ -112,7 +112,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "视觉算法专家、应用开发者",
       agenda: "学术报告、技术工作坊、应用展示",
       expectedAttendees: 1800,
-      url: "https://example.com/cv-2025",
+      url: "https://example.com/events/cv-2025",
     },
     // 2026年会议
     {
@@ -127,7 +127,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "李开复、杨植麟、张钹等行业专家",
       agenda: "主题演讲、分论坛、技术展示、投融资对接",
       expectedAttendees: 5000,
-      url: "https://example.com/ai-industry-2026",
+      url: "https://example.com/events/ai-industry-2026",
     },
     {
       name: "CCAI 2026全球人工智能大会",
@@ -141,7 +141,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "国内外顶级AI专家",
       agenda: "学术报告、工业论坛、竞赛展示",
       expectedAttendees: 8000,
-      url: "https://example.com/ccai2026",
+      url: "https://example.com/events/ccai2026",
     },
     {
       name: "大模型时代的AI创新论坛",
@@ -154,7 +154,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "业界领袖、技术专家",
       agenda: "主题分享、圆桌讨论、Q&A互动",
       expectedAttendees: 10000,
-      url: "https://example.com/llm-forum",
+      url: "https://example.com/events/llm-forum",
     },
     {
       name: "AI与深度学习技术峰会",
@@ -168,7 +168,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "深度学习研究专家",
       agenda: "技术议题、实践分享、产业应用",
       expectedAttendees: 3500,
-      url: "https://example.com/dl-summit-2026",
+      url: "https://example.com/events/dl-summit-2026",
     },
     {
       name: "2026年自然语言处理技术论坛",
@@ -182,7 +182,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "NLP研究者、应用开发者",
       agenda: "技术演讲、案例分享、工作坊",
       expectedAttendees: 2200,
-      url: "https://example.com/nlp-2026",
+      url: "https://example.com/events/nlp-2026",
     },
     {
       name: "2026年AI芯片技术大会",
@@ -196,7 +196,7 @@ async function crawlAIConferences(): Promise<EventData[]> {
       speakers: "芯片设计师、制造商",
       agenda: "技术报告、产品展示、投资对接",
       expectedAttendees: 2800,
-      url: "https://example.com/ai-chip-2026",
+      url: "https://example.com/events/ai-chip-2026",
     },
   ];
 
