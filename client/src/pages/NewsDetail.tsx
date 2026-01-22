@@ -1,12 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ArrowLeft } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 
 export default function NewsDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   
   const { data: news, isLoading } = trpc.detail.useQuery(
     { id: Number(id) },
@@ -85,8 +85,7 @@ export default function NewsDetail() {
         {/* 返回按钮 */}
         <Button
           variant="ghost"
-          className="mb-6"
-          onClick={() => navigate(-1)}
+          className="mb-6"          onClick={() => setLocation("/")}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           返回
