@@ -30,20 +30,18 @@ export async function getDb() {
   _connecting = true;
   try {
     console.log("[Database] Attempting to connect...");
-    // PostgreSQL connection with SSL support for Render
-    let connectionString = process.env.DATABASE_URL;
-    
-    // Ensure SSL is enabled for Render PostgreSQL
-    if (connectionString && !connectionString.includes('sslmode')) {
-      connectionString += connectionString.includes('?') ? '&sslmode=require' : '?sslmode=require';
-      console.log("[Database] Added SSL mode to connection string");
-    }
+    // PostgreSQL connection with SSL support for Railway
+    const connectionString = process.env.DATABASE_URL;
     
     const client = new pg.Pool({
       connectionString,
-      ssl: { rejectUnauthorized: false },
+      ssl: {
+        rejectUnauthorized: false
+      },
       max: 10,
     });
+    
+    console.log("[Database] Configured with SSL rejectUnauthorized: false");
     
     // Test the connection
     const testResult = await client.query('SELECT 1');
