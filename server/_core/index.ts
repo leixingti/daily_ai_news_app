@@ -89,8 +89,8 @@ async function startServer() {
     setTimeout(() => {
       console.log("[Server] Starting crawlers after 30 second delay...");
       
-      // Start events crawler schedule
-      startEventsCrawlerSchedule();
+      // Start events crawler schedule (disabled - using real events crawler instead)
+      // startEventsCrawlerSchedule();
       
       // Start real events crawler schedule
       initializeRealEventsCrawlerSchedule();
