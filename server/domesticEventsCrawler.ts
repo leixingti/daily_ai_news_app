@@ -904,7 +904,6 @@ function getKnownDomesticEvents(): DomesticEvent[] {
     },
   ];
 }
-}
 
 /**
  * 保存事件到数据库
