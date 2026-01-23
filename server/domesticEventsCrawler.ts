@@ -1,6 +1,7 @@
 /**
  * 国内 AI 会议爬虫
  * 从多个国内平台爬取真实的 AI 会议数据
+ * Updated: 2026-01-23
  */
 
 import * as cheerio from "cheerio";
