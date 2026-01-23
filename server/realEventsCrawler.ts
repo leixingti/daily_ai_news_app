@@ -181,37 +181,9 @@ async function fetchInternationalEventsQ1Q2(): Promise<RealEvent[]> {
  */
 async function fetchFrom36Kr(): Promise<RealEvent[]> {
   try {
-    // 在实际应用中，这里应该调用真实的 36Kr API
-    const events: RealEvent[] = [
-      {
-        name: "2026 中国 AI 创新峰会",
-        description: "中国领先的 AI 创新峰会，汇聚国内顶级 AI 企业和投资者",
-        startDate: new Date("2026-03-20"),
-        endDate: new Date("2026-03-22"),
-        location: "中国北京",
-        type: "offline",
-        region: "domestic",
-        registrationUrl: "https://36kr.com/events",
-        speakers: "李开复, 张一鸣, 王小川",
-        expectedAttendees: 3000,
-        agenda: "大模型、AI 应用、投资趋势",
-        source: "36Kr",
-      },
-      {
-        name: "2026 大模型技术论坛",
-        description: "专注于大语言模型技术的专业论坛",
-        startDate: new Date("2026-04-10"),
-        endDate: new Date("2026-04-11"),
-        location: "中国上海",
-        type: "offline",
-        region: "domestic",
-        registrationUrl: "https://36kr.com/events",
-        speakers: "邱晓岚, 周伯文, 陈丹琦",
-        expectedAttendees: 1000,
-        agenda: "LLM 微调、推理优化、应用案例",
-        source: "36Kr",
-      },
-    ];
+    // TODO: 在实际应用中，这里应该调用真实的 36Kr API 来获取真实的国内 AI 会议数据
+    // 目前暂时返回空数组，避免使用虚构数据
+    const events: RealEvent[] = [];
     return events;
   } catch (error) {
     console.error("[RealEventsCrawler] Failed to fetch from 36Kr:", error);
