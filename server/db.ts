@@ -41,6 +41,7 @@ export async function getDb() {
       max: 10,
     });
     
+    // Force rebuild - Railway SSL fix
     console.log("[Database] Configured with SSL rejectUnauthorized: false");
     
     // Test the connection
