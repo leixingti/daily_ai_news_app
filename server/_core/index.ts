@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startEventsCrawlerSchedule } from "../eventsCrawler";
 import { initializeRealEventsCrawlerSchedule } from "../realEventsCrawler";
+import { initializeDomesticEventsCrawlerSchedule } from "../domesticEventsCrawler";
 import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
 import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
 import { initializeNewsExcerptGeneratorSchedule } from "../newsExcerptGenerator";
@@ -94,6 +95,9 @@ async function startServer() {
       
       // Start real events crawler schedule
       initializeRealEventsCrawlerSchedule();
+      
+      // Start domestic events crawler schedule
+      initializeDomesticEventsCrawlerSchedule();
       
       // Start real API crawler schedule
       initializeRealApiCrawlerSchedule();
