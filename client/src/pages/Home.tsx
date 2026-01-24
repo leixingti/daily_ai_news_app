@@ -27,17 +27,17 @@ const categoryLabels: Record<string, string> = {
   tech: "技术创新",
   product: "产品发布",
   industry: "行业动态",
-  event: "行业会议",
+  manufacturer: "AI原厂新闻",
 };
 
-const categoryOrder = ['tech', 'product', 'industry', 'event'];
+const categoryOrder = ['tech', 'product', 'industry', 'manufacturer'];
 
 // Category color styles for all news categories
 const categoryColors = {
   tech: "bg-blue-100 text-blue-700 hover:bg-blue-200",
   product: "bg-purple-100 text-purple-700 hover:bg-purple-200",
   industry: "bg-green-100 text-green-700 hover:bg-green-200",
-  event: "bg-orange-100 text-orange-700 hover:bg-orange-200", // Industry events category
+  manufacturer: "bg-orange-100 text-orange-700 hover:bg-orange-200", // AI manufacturer news
 };
 
 const regionLabels = {

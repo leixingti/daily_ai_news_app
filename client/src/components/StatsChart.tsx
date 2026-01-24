@@ -13,7 +13,7 @@ const categoryLabels: Record<string, string> = {
   tech: "技术创新",
   product: "产品发布",
   industry: "行业动态",
-  event: "会议活动",
+  manufacturer: "AI原厂新闻",
   domestic: "国内",
   international: "国际",
 };

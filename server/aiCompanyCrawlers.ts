@@ -19,7 +19,7 @@ interface NewsItem {
   content: string;
   source: string;
   region: "international" | "domestic";
-  category: "tech" | "product" | "industry" | "event";
+  category: "tech" | "product" | "industry" | "manufacturer";
 }
 
 /**
@@ -115,7 +115,7 @@ export async function crawlOpenAI(): Promise<void> {
         content: item.content || item.contentSnippet || "",
         source: "OpenAI",
         region: "international",
-        category: "tech" as "tech",
+        category: "manufacturer" as "manufacturer",
       };
       
       await saveNews(news);
@@ -157,7 +157,7 @@ export async function crawlDeepMind(): Promise<void> {
           content: summary,
           source: "Google DeepMind",
           region: "international",
-          category: "tech" as "tech",
+          category: "manufacturer" as "manufacturer",
         });
       }
     });
@@ -201,7 +201,7 @@ export async function crawlAnthropic(): Promise<void> {
           content: summary,
           source: "Anthropic",
           region: "international",
-          category: "tech" as "tech",
+          category: "manufacturer" as "manufacturer",
         });
       }
     });
@@ -245,7 +245,7 @@ export async function crawlMetaAI(): Promise<void> {
           content: summary,
           source: "Meta AI",
           region: "international",
-          category: "tech" as "tech",
+          category: "manufacturer" as "manufacturer",
         });
       }
     });
