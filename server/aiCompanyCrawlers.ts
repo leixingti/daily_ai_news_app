@@ -8,6 +8,8 @@ import { getDb } from "./db";
 import { aiNews } from "../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import Parser from "rss-parser";
+import { createPage, navigateToPage, extractTextContent, extractLinks, waitForSelector } from "./browserUtils";
+import { crawlWithPuppeteer } from "./genericPuppeteerCrawler";
 
 const rssParser = new Parser();
 
@@ -313,38 +315,77 @@ export async function crawlHuggingFace(): Promise<void> {
 // ============================================================================
 
 /**
- * 智谱AI (ChatGLM) Crawler
+ * 智谱AI (ChatGLM) Crawler - Puppeteer version
  */
 export async function crawlZhipuAI(): Promise<void> {
   console.log("[智谱AI] Starting crawler...");
+  const page = await createPage();
   
   try {
-    const html = await fetchHTML("https://www.zhipuai.cn/news");
-    if (!html) return;
+    const success = await navigateToPage(page, "https://www.zhipuai.cn/news");
+    if (!success) {
+      await page.close();
+      return;
+    }
     
-    const $ = cheerio.load(html);
+    // Wait for news content to load
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
     const newsItems: NewsItem[] = [];
     
-    $("article, .news-item, .post, a[href*='/news/']").slice(0, 10).each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title").first().text().trim() || $el.text().trim();
-      const url = $el.attr("href") || $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .desc").first().text().trim();
-      const dateStr = $el.find("time, .date, .time").first().text();
+    // Extract news items using page.evaluate
+    const items = await page.evaluate(() => {
+      const results: Array<{title: string, url: string, summary: string, date: string}> = [];
       
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://www.zhipuai.cn${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500),
-          content: summary,
-          source: "智谱AI",
-          region: "domestic",
-          category: "manufacturer",
-        });
+      // Try multiple selectors
+      const selectors = [
+        'article',
+        '.news-item',
+        '.news-list > div',
+        '[class*="news"]',
+        '[class*="article"]',
+      ];
+      
+      for (const selector of selectors) {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length > 0) {
+          elements.forEach((el, index) => {
+            if (index >= 10) return;
+            
+            const titleEl = el.querySelector('h1, h2, h3, h4, .title, [class*="title"]');
+            const linkEl = el.querySelector('a');
+            const summaryEl = el.querySelector('p, .summary, .desc, [class*="desc"]');
+            const dateEl = el.querySelector('time, .date, .time, [class*="date"]');
+            
+            const title = titleEl?.textContent?.trim() || '';
+            const url = linkEl?.getAttribute('href') || '';
+            const summary = summaryEl?.textContent?.trim() || '';
+            const date = dateEl?.textContent?.trim() || '';
+            
+            if (title && url) {
+              results.push({ title, url, summary, date });
+            }
+          });
+          
+          if (results.length > 0) break;
+        }
       }
+      
+      return results;
     });
+    
+    for (const item of items) {
+      newsItems.push({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://www.zhipuai.cn${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "智谱AI",
+        region: "domestic",
+        category: "manufacturer",
+      });
+    }
     
     for (const news of newsItems) {
       await saveNews(news);
@@ -353,42 +394,84 @@ export async function crawlZhipuAI(): Promise<void> {
     console.log(`[智谱AI] Crawled ${newsItems.length} news items`);
   } catch (error) {
     console.error("[智谱AI] Crawler failed:", error);
+  } finally {
+    await page.close();
   }
 }
 
 /**
- * 月之暗面 (Moonshot/Kimi) Crawler
+ * 月之暗面 (Moonshot/Kimi) Crawler - Puppeteer version
  */
 export async function crawlMoonshot(): Promise<void> {
   console.log("[月之暗面] Starting crawler...");
+  const page = await createPage();
   
   try {
-    const html = await fetchHTML("https://www.moonshot.cn/blog");
-    if (!html) return;
+    const success = await navigateToPage(page, "https://www.moonshot.cn/blog");
+    if (!success) {
+      await page.close();
+      return;
+    }
     
-    const $ = cheerio.load(html);
+    // Wait for blog content to load
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
     const newsItems: NewsItem[] = [];
     
-    $("article, .blog-post, .post-item, a[href*='/blog/']").slice(0, 10).each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title").first().text().trim() || $el.text().trim();
-      const url = $el.attr("href") || $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
-      const dateStr = $el.find("time, .date").first().text();
+    // Extract blog posts using page.evaluate
+    const items = await page.evaluate(() => {
+      const results: Array<{title: string, url: string, summary: string, date: string}> = [];
       
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://www.moonshot.cn${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500),
-          content: summary,
-          source: "月之暗面",
-          region: "domestic",
-          category: "manufacturer",
-        });
+      // Try multiple selectors for blog posts
+      const selectors = [
+        'article',
+        '.blog-post',
+        '.post-item',
+        '[class*="blog"]',
+        '[class*="post"]',
+        'a[href*="/blog/"]',
+      ];
+      
+      for (const selector of selectors) {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length > 0) {
+          elements.forEach((el, index) => {
+            if (index >= 10) return;
+            
+            const titleEl = el.querySelector('h1, h2, h3, h4, .title, [class*="title"]');
+            const linkEl = el.querySelector('a') || (el as HTMLAnchorElement);
+            const summaryEl = el.querySelector('p, .summary, .excerpt, .desc, [class*="desc"]');
+            const dateEl = el.querySelector('time, .date, .time, [class*="date"]');
+            
+            const title = titleEl?.textContent?.trim() || el.textContent?.trim().split('\n')[0] || '';
+            const url = linkEl?.getAttribute?.('href') || '';
+            const summary = summaryEl?.textContent?.trim() || '';
+            const date = dateEl?.textContent?.trim() || '';
+            
+            if (title && url && title.length > 5) {
+              results.push({ title, url, summary, date });
+            }
+          });
+          
+          if (results.length > 0) break;
+        }
       }
+      
+      return results;
     });
+    
+    for (const item of items) {
+      newsItems.push({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://www.moonshot.cn${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "月之暗面",
+        region: "domestic",
+        category: "manufacturer",
+      });
+    }
     
     for (const news of newsItems) {
       await saveNews(news);
@@ -397,137 +480,96 @@ export async function crawlMoonshot(): Promise<void> {
     console.log(`[月之暗面] Crawled ${newsItems.length} news items`);
   } catch (error) {
     console.error("[月之暗面] Crawler failed:", error);
+  } finally {
+    await page.close();
   }
 }
 
 /**
- * 百度AI Crawler
+ * 百度AI Crawler - Puppeteer version
  */
 export async function crawlBaiduAI(): Promise<void> {
-  console.log("[百度AI] Starting crawler...");
-  
   try {
-    const html = await fetchHTML("https://ai.baidu.com/news");
-    if (!html) return;
+    const items = await crawlWithPuppeteer(
+      "https://ai.baidu.com/news",
+      "百度AI",
+      "https://ai.baidu.com"
+    );
     
-    const $ = cheerio.load(html);
-    const newsItems: NewsItem[] = [];
-    
-    $("article, .news-item, .news-list li, a[href*='/news/']").slice(0, 10).each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title, a").first().text().trim() || $el.text().trim();
-      const url = $el.attr("href") || $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .desc").first().text().trim();
-      const dateStr = $el.find("time, .date, .time").first().text();
-      
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://ai.baidu.com${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500),
-          content: summary,
-          source: "百度AI",
-          region: "domestic",
-          category: "manufacturer",
-        });
-      }
-    });
-    
-    for (const news of newsItems) {
-      await saveNews(news);
+    for (const item of items) {
+      await saveNews({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://ai.baidu.com${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "百度AI",
+        region: "domestic",
+        category: "manufacturer",
+      });
     }
     
-    console.log(`[百度AI] Crawled ${newsItems.length} news items`);
+    console.log(`[百度AI] Crawled ${items.length} news items`);
   } catch (error) {
     console.error("[百度AI] Crawler failed:", error);
   }
 }
 
 /**
- * 阿里云AI Crawler
+ * 阿里云AI Crawler - Puppeteer version
  */
 export async function crawlAliyunAI(): Promise<void> {
-  console.log("[阿里云AI] Starting crawler...");
-  
   try {
-    // Try Alibaba Cloud AI blog
-    const html = await fetchHTML("https://www.aliyun.com/solution/ai");
-    if (!html) return;
+    const items = await crawlWithPuppeteer(
+      "https://www.aliyun.com/solution/ai",
+      "阿里云AI",
+      "https://www.aliyun.com"
+    );
     
-    const $ = cheerio.load(html);
-    const newsItems: NewsItem[] = [];
-    
-    $("article, .news-item, .article-item, a[href*='/article/']").slice(0, 10).each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title, a").first().text().trim() || $el.text().trim();
-      const url = $el.attr("href") || $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .desc").first().text().trim();
-      const dateStr = $el.find("time, .date").first().text();
-      
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://www.aliyun.com${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500),
-          content: summary,
-          source: "阿里云AI",
-          region: "domestic",
-          category: "manufacturer",
-        });
-      }
-    });
-    
-    for (const news of newsItems) {
-      await saveNews(news);
+    for (const item of items) {
+      await saveNews({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://www.aliyun.com${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "阿里云AI",
+        region: "domestic",
+        category: "manufacturer",
+      });
     }
     
-    console.log(`[阿里云AI] Crawled ${newsItems.length} news items`);
+    console.log(`[阿里云AI] Crawled ${items.length} news items`);
   } catch (error) {
     console.error("[阿里云AI] Crawler failed:", error);
   }
 }
 
 /**
- * 字节跳动AI Crawler
+ * 字节跳动AI Crawler - Puppeteer version
  */
 export async function crawlByteDanceAI(): Promise<void> {
-  console.log("[字节跳动AI] Starting crawler...");
-  
   try {
-    const html = await fetchHTML("https://ailab.bytedance.com/");
-    if (!html) return;
+    const items = await crawlWithPuppeteer(
+      "https://ailab.bytedance.com/",
+      "字节跳动AI",
+      "https://ailab.bytedance.com"
+    );
     
-    const $ = cheerio.load(html);
-    const newsItems: NewsItem[] = [];
-    
-    $("article, .news-item, .post, a[href*='/news/'], a[href*='/blog/']").slice(0, 10).each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title").first().text().trim() || $el.text().trim();
-      const url = $el.attr("href") || $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary").first().text().trim();
-      const dateStr = $el.find("time, .date").first().text();
-      
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://ailab.bytedance.com${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500),
-          content: summary,
-          source: "字节跳动AI",
-          region: "domestic",
-          category: "manufacturer",
-        });
-      }
-    });
-    
-    for (const news of newsItems) {
-      await saveNews(news);
+    for (const item of items) {
+      await saveNews({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://ailab.bytedance.com${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "字节跳动AI",
+        region: "domestic",
+        category: "manufacturer",
+      });
     }
     
-    console.log(`[字节跳动AI] Crawled ${newsItems.length} news items`);
+    console.log(`[字节跳动AI] Crawled ${items.length} news items`);
   } catch (error) {
     console.error("[字节跳动AI] Crawler failed:", error);
   }
@@ -559,23 +601,18 @@ export async function runAllAICompanyCrawlers(): Promise<void> {
     crawlMistralAI(),
   ]);
   
-  // Run domestic crawlers
-  // Note: Most Chinese AI company crawlers are temporarily disabled due to:
-  // 1. Dynamic content loading requiring browser automation
-  // 2. Anti-scraping protections (403/404 errors)
-  // 3. Incorrect HTML selectors that don't match actual website structure
-  // These will be re-enabled after proper optimization with Puppeteer or API integration
+  // Run domestic crawlers - temporarily disabled
   await Promise.allSettled([
-    // crawlZhipuAI(),      // Disabled: requires browser automation
-    // crawlMoonshot(),     // Disabled: requires browser automation
-    // crawlBaiduAI(),      // Disabled: incorrect selectors
-    // crawlAliyunAI(),     // Disabled: incorrect selectors
-    // crawlByteDanceAI(),  // Disabled: HTTP 404 error
-    // crawlSenseTime(),    // Disabled: incorrect selectors
-    // crawlMegvii(),       // Disabled: incorrect selectors
-    // crawl4Paradigm(),    // Disabled: incorrect selectors
-    // crawlCloudWalk(),    // Disabled: HTTP 403 anti-scraping
-    // crawliFlytek(),      // Disabled: incorrect selectors
+    //     crawlZhipuAI(),
+    //     crawlMoonshot(),
+    //     crawlBaiduAI(),
+    //     crawlAliyunAI(),
+    //     crawlByteDanceAI(),
+    //     crawlSenseTime(),
+    //     crawlMegvii(),
+    //     crawl4Paradigm(),
+    //     crawlCloudWalk(),
+    //     crawliFlytek(),
   ]);
   
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -806,215 +843,150 @@ export async function crawlMistralAI(): Promise<void> {
 // ============================================================================
 
 /**
- * SenseTime (商汤科技) News Crawler
+ * SenseTime (商汤科技) News Crawler - Puppeteer version
  */
 export async function crawlSenseTime(): Promise<void> {
-  console.log("[商汤科技] Starting crawler...");
-  
   try {
-    const html = await fetchHTML("https://www.sensetime.com/cn/news-press-release");
-    const $ = cheerio.load(html);
+    const items = await crawlWithPuppeteer(
+      "https://www.sensetime.com/cn/news-press-release",
+      "商汤科技",
+      "https://www.sensetime.com"
+    );
     
-    const newsItems: NewsItem[] = [];
-    
-    $("article, .news-item, .press-item").each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title").first().text().trim();
-      const url = $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
-      const dateStr = $el.find("time, .date").first().text();
-      
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://www.sensetime.com${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500),
-          content: summary,
-          source: "商汤科技",
-          region: "domestic",
-          category: "manufacturer" as "manufacturer",
-        });
-      }
-    });
-    
-    for (const news of newsItems.slice(0, 10)) {
-      await saveNews(news);
+    for (const item of items) {
+      await saveNews({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://www.sensetime.com${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "商汤科技",
+        region: "domestic",
+        category: "manufacturer",
+      });
     }
     
-    console.log(`[商汤科技] Crawled ${newsItems.length} news items`);
+    console.log(`[商汤科技] Crawled ${items.length} news items`);
   } catch (error) {
     console.error("[商汤科技] Crawler failed:", error);
   }
 }
 
 /**
- * Megvii (旷视科技) News Crawler
+ * Megvii (旷视科技) News Crawler - Puppeteer version
  */
 export async function crawlMegvii(): Promise<void> {
-  console.log("[旷视科技] Starting crawler...");
-  
   try {
-    const html = await fetchHTML("https://www.megvii.com/news/");
-    const $ = cheerio.load(html);
+    const items = await crawlWithPuppeteer(
+      "https://www.megvii.com/news/",
+      "旷视科技",
+      "https://www.megvii.com"
+    );
     
-    const newsItems: NewsItem[] = [];
-    
-    $("article, .news-item, .news-card").each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title").first().text().trim();
-      const url = $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
-      const dateStr = $el.find("time, .date").first().text();
-      
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://www.megvii.com${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500),
-          content: summary,
-          source: "旷视科技",
-          region: "domestic",
-          category: "manufacturer" as "manufacturer",
-        });
-      }
-    });
-    
-    for (const news of newsItems.slice(0, 10)) {
-      await saveNews(news);
+    for (const item of items) {
+      await saveNews({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://www.megvii.com${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "旷视科技",
+        region: "domestic",
+        category: "manufacturer",
+      });
     }
     
-    console.log(`[旷视科技] Crawled ${newsItems.length} news items`);
+    console.log(`[旷视科技] Crawled ${items.length} news items`);
   } catch (error) {
     console.error("[旷视科技] Crawler failed:", error);
   }
 }
 
 /**
- * 4Paradigm (第四范式) News Crawler
+ * 4Paradigm (第四范式) News Crawler - Puppeteer version
  */
 export async function crawl4Paradigm(): Promise<void> {
-  console.log("[第四范式] Starting crawler...");
-  
   try {
-    const html = await fetchHTML("https://www.4paradigm.com/about/news.html");
-    const $ = cheerio.load(html);
+    const items = await crawlWithPuppeteer(
+      "https://www.4paradigm.com/about/news.html",
+      "第四范式",
+      "https://www.4paradigm.com"
+    );
     
-    const newsItems: NewsItem[] = [];
-    
-    $("article, .news-item, .news-list-item").each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title, a").first().text().trim();
-      const url = $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
-      const dateStr = $el.find("time, .date, .time").first().text();
-      
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://www.4paradigm.com${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500) || title,
-          content: summary || title,
-          source: "第四范式",
-          region: "domestic",
-          category: "manufacturer" as "manufacturer",
-        });
-      }
-    });
-    
-    for (const news of newsItems.slice(0, 10)) {
-      await saveNews(news);
+    for (const item of items) {
+      await saveNews({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://www.4paradigm.com${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "第四范式",
+        region: "domestic",
+        category: "manufacturer",
+      });
     }
     
-    console.log(`[第四范式] Crawled ${newsItems.length} news items`);
+    console.log(`[第四范式] Crawled ${items.length} news items`);
   } catch (error) {
     console.error("[第四范式] Crawler failed:", error);
   }
 }
 
 /**
- * CloudWalk (云从科技) News Crawler
+ * CloudWalk (云从科技) News Crawler - Puppeteer version
  */
 export async function crawlCloudWalk(): Promise<void> {
-  console.log("[云从科技] Starting crawler...");
-  
   try {
-    const html = await fetchHTML("https://www.cloudwalk.com/");
-    const $ = cheerio.load(html);
+    const items = await crawlWithPuppeteer(
+      "https://www.cloudwalk.com/",
+      "云从科技",
+      "https://www.cloudwalk.com"
+    );
     
-    const newsItems: NewsItem[] = [];
-    
-    $("article, .news-item, .news-card").each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title").first().text().trim();
-      const url = $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
-      const dateStr = $el.find("time, .date").first().text();
-      
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://www.cloudwalk.com${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500) || title,
-          content: summary || title,
-          source: "云从科技",
-          region: "domestic",
-          category: "manufacturer" as "manufacturer",
-        });
-      }
-    });
-    
-    for (const news of newsItems.slice(0, 10)) {
-      await saveNews(news);
+    for (const item of items) {
+      await saveNews({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://www.cloudwalk.com${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "云从科技",
+        region: "domestic",
+        category: "manufacturer",
+      });
     }
     
-    console.log(`[云从科技] Crawled ${newsItems.length} news items`);
+    console.log(`[云从科技] Crawled ${items.length} news items`);
   } catch (error) {
     console.error("[云从科技] Crawler failed:", error);
   }
 }
 
 /**
- * iFlytek (科大讯飞) News Crawler
+ * iFlytek (科大讯飞) News Crawler - Puppeteer version
  */
 export async function crawliFlytek(): Promise<void> {
-  console.log("[科大讯飞] Starting crawler...");
-  
   try {
-    const html = await fetchHTML("https://www.iflytek.com/");
-    const $ = cheerio.load(html);
+    const items = await crawlWithPuppeteer(
+      "https://www.iflytek.com/",
+      "科大讯飞",
+      "https://www.iflytek.com"
+    );
     
-    const newsItems: NewsItem[] = [];
-    
-    $("article, .news-item, .news-list-item").each((_, element) => {
-      const $el = $(element);
-      const title = $el.find("h2, h3, .title").first().text().trim();
-      const url = $el.find("a").first().attr("href") || "";
-      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
-      const dateStr = $el.find("time, .date").first().text();
-      
-      if (title && url) {
-        newsItems.push({
-          title,
-          sourceUrl: url.startsWith("http") ? url : `https://www.iflytek.com${url}`,
-          publishedAt: dateStr ? new Date(dateStr) : new Date(),
-          summary: summary.substring(0, 500) || title,
-          content: summary || title,
-          source: "科大讯飞",
-          region: "domestic",
-          category: "manufacturer" as "manufacturer",
-        });
-      }
-    });
-    
-    for (const news of newsItems.slice(0, 10)) {
-      await saveNews(news);
+    for (const item of items) {
+      await saveNews({
+        title: item.title,
+        sourceUrl: item.url.startsWith('http') ? item.url : `https://www.iflytek.com${item.url}`,
+        publishedAt: item.date ? new Date(item.date) : new Date(),
+        summary: item.summary.substring(0, 500) || item.title,
+        content: item.summary || item.title,
+        source: "科大讯飞",
+        region: "domestic",
+        category: "manufacturer",
+      });
     }
     
-    console.log(`[科大讯飞] Crawled ${newsItems.length} news items`);
+    console.log(`[科大讯飞] Crawled ${items.length} news items`);
   } catch (error) {
     console.error("[科大讯飞] Crawler failed:", error);
   }
