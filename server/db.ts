@@ -143,7 +143,7 @@ export async function getAiNewsList(input: {
 
     const conditions = [];
     
-    // 添加源过滤：只显示 8 个精选源的新闻
+    // 添加源过滤：只显示精选源和AI原厂新闻
     const allowedSources = [
       '机器之心',
       '量子位',
@@ -152,7 +152,13 @@ export async function getAiNewsList(input: {
       'ArXiv AI',
       'OpenAI Blog',
       'DeepMind Blog',
-      'TechCrunch'
+      'TechCrunch',
+      // 国际 AI 原厂
+      'OpenAI', 'Google DeepMind', 'Anthropic', 'Meta AI', 'Hugging Face',
+      'Microsoft AI', 'NVIDIA AI', 'AWS AI', 'Cohere', 'Mistral AI',
+      // 国内 AI 原厂
+      '智谱AI', '月之暗面', '百度AI', '阿里云AI', '字节跳动AI',
+      '商汤科技', '旷视科技', '第四范式', '云从科技', '科大讯飞'
     ];
     conditions.push(inArray(aiNews.source, allowedSources));
     if (input.category && input.category !== "全部") {
