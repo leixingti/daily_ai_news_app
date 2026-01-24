@@ -55,7 +55,11 @@ async function fetchHTML(url: string): Promise<string> {
  * Save news to database
  */
 async function saveNews(news: NewsItem): Promise<void> {
-  const db = getDb();
+  const db = await getDb();
+  if (!db) {
+    console.error("[DB] Database not available for saving news");
+    return;
+  }
   
   try {
     // Check if news already exists
