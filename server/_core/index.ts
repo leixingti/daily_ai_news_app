@@ -13,6 +13,7 @@ import { initializeDomesticEventsCrawlerSchedule } from "../domesticEventsCrawle
 import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
 import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
 import { initializeNewsExcerptGeneratorSchedule } from "../newsExcerptGenerator";
+import { runAllAICompanyCrawlers } from "../aiCompanyCrawlers";
 import adminRoutes from "../adminRoutes";
 import { testRouter } from "../testRouter";
 import fixLinksRouter from "../fixLinksRouter";
@@ -107,6 +108,13 @@ async function startServer() {
       
       // Start news excerpt generator schedule
       initializeNewsExcerptGeneratorSchedule();
+      
+      // Start AI company crawlers schedule
+      console.log("[Server] Starting AI company crawlers...");
+      runAllAICompanyCrawlers();
+      setInterval(() => {
+        runAllAICompanyCrawlers();
+      }, 60 * 60 * 1000); // Run every hour
     }, 30000); // 30 second delay
   });
 }
