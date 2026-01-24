@@ -4,7 +4,7 @@ import { integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/
  * Enum definitions
  */
 export const roleEnum = pgEnum("role", ["user", "admin"]);
-export const categoryEnum = pgEnum("category", ["tech", "product", "industry", "manufacturer"]);
+export const categoryEnum = pgEnum("category", ["tech", "product", "industry", "manufacturer", "ai_company"]);
 export const regionEnum = pgEnum("region", ["domestic", "international"]);
 export const eventTypeEnum = pgEnum("event_type", ["online", "offline"]);
 

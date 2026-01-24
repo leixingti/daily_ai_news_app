@@ -85,30 +85,132 @@ const INTERNATIONAL_RSS_SOURCES = [
     name: "MIT Technology Review",
     url: "https://www.technologyreview.com/feed.rss",
     region: "international" as const,
+    category: "tech" as const,
   },
   {
     name: "ArXiv AI",
     url: "https://arxiv.org/rss/cs.AI",
     region: "international" as const,
-  },
-  {
-    name: "OpenAI Blog",
-    url: "https://openai.com/blog/rss.xml",
-    region: "international" as const,
-  },
-  {
-    name: "DeepMind Blog",
-    url: "https://deepmind.google/blog/feed/",
-    region: "international" as const,
+    category: "tech" as const,
   },
   {
     name: "TechCrunch",
     url: "https://techcrunch.com/feed/",
     region: "international" as const,
+    category: "tech" as const,
   },
 ];
 
-const ALL_RSS_SOURCES = [...DOMESTIC_RSS_SOURCES, ...INTERNATIONAL_RSS_SOURCES];
+/**
+ * AI原厂 RSS 源配置（17 个精选）
+ * 来自全球领先的AI大模型公司官方博客/新闻
+ */
+const AI_COMPANY_RSS_SOURCES = [
+  {
+    name: "OpenAI",
+    url: "https://openai.com/news/rss.xml",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Google DeepMind",
+    url: "https://deepmind.google/blog/rss.xml",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Microsoft AI",
+    url: "https://www.microsoft.com/en-us/microsoft-cloud/blog/feed/",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "NVIDIA AI",
+    url: "https://developer.nvidia.com/blog/feed/",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Hugging Face",
+    url: "https://huggingface.co/blog/feed.xml",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Databricks",
+    url: "https://www.databricks.com/feed",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "AWS AI",
+    url: "https://aws.amazon.com/blogs/machine-learning/feed/",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Stability AI",
+    url: "https://stability.ai/news?format=rss",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Together AI",
+    url: "https://www.together.ai/blog/rss.xml",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "IBM AI",
+    url: "https://newsroom.ibm.com/press-releases-artificial-intelligence?pagetemplate=rss",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Apple",
+    url: "https://www.apple.com/ca/newsroom/rss-feed.rss",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Samsung",
+    url: "https://news.samsung.com/global/feed",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Salesforce",
+    url: "https://www.salesforce.com/blog/feed/",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "SAP",
+    url: "https://news.sap.com/feed/",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Oracle",
+    url: "https://www.oracle.com/corporate/press/rss/rss-pr.xml",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Writer",
+    url: "https://writer.com/feed/",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+  {
+    name: "Snowflake",
+    url: "https://publish-p57963-e462109.adobeaemcloud.com/feed/?lang=en",
+    region: "international" as const,
+    category: "ai_company" as const,
+  },
+];
+
+const ALL_RSS_SOURCES = [...DOMESTIC_RSS_SOURCES, ...INTERNATIONAL_RSS_SOURCES, ...AI_COMPANY_RSS_SOURCES];
 
 /**
  * 批量翻译文本（优化版）
@@ -187,7 +289,8 @@ async function translateText(text: string, targetLanguage: string = "zh"): Promi
 async function parseRSSFeed(
   sourceUrl: string,
   sourceName: string,
-  region: "domestic" | "international"
+  region: "domestic" | "international",
+  category?: string
 ): Promise<RSSItem[]> {
   try {
     console.log(`[RSSNewsCrawler] Fetching RSS from ${sourceName}...`);
@@ -317,6 +420,7 @@ async function parseRSSFeed(
           pubDate,
           source: sourceName,
           region,
+          category: category,
           fullContent: fullContent,
         });
 
@@ -368,7 +472,7 @@ async function saveNews(item: RSSItem): Promise<boolean> {
       source: item.source,
       sourceUrl: item.link,
       region: item.region,
-      category: (item.category || "tech") as "tech" | "product" | "industry" | "event",
+      category: (item.category || "tech") as "tech" | "product" | "industry" | "manufacturer" | "ai_company",
       publishedAt: item.pubDate,
       contentHash: Buffer.from(item.link).toString("hex").substring(0, 64),
       translationStatus: item.region === "international" ? 1 : 0,
@@ -392,8 +496,8 @@ export async function runRSSNewsCrawler(): Promise<void> {
     let totalSaved = 0;
 
     // 并行抓取所有 RSS 源
-    const crawlPromises = ALL_RSS_SOURCES.map(async (source) => {
-      const items = await parseRSSFeed(source.url, source.name, source.region);
+    const crawlPromises = ALL_RSS_SOURCES.map(async (source: any) => {
+      const items = await parseRSSFeed(source.url, source.name, source.region, source.category);
       let saved = 0;
 
       for (const item of items) {
