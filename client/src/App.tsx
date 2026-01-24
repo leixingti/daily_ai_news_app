@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import EventsPage from "./pages/EventsPage";
 import NewsDetail from "./pages/NewsDetail";
 import AICompanies from "./pages/AICompanies";
+import LLMCompanies from "./pages/LLMCompanies";
 import { Navigation } from "./components/Navigation";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
         <Route path="/events" component={EventsPage} />
         <Route path="/news/:id" component={NewsDetail} />
         <Route path="/companies" component={AICompanies} />
+        <Route path="/llm-companies" component={LLMCompanies} />
         <Route path="/404" component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />
