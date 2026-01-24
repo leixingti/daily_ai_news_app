@@ -560,17 +560,22 @@ export async function runAllAICompanyCrawlers(): Promise<void> {
   ]);
   
   // Run domestic crawlers
+  // Note: Most Chinese AI company crawlers are temporarily disabled due to:
+  // 1. Dynamic content loading requiring browser automation
+  // 2. Anti-scraping protections (403/404 errors)
+  // 3. Incorrect HTML selectors that don't match actual website structure
+  // These will be re-enabled after proper optimization with Puppeteer or API integration
   await Promise.allSettled([
-    crawlZhipuAI(),
-    crawlMoonshot(),
-    crawlBaiduAI(),
-    crawlAliyunAI(),
-    crawlByteDanceAI(),
-    crawlSenseTime(),
-    crawlMegvii(),
-    crawl4Paradigm(),
-    crawlCloudWalk(),
-    crawliFlytek(),
+    // crawlZhipuAI(),      // Disabled: requires browser automation
+    // crawlMoonshot(),     // Disabled: requires browser automation
+    // crawlBaiduAI(),      // Disabled: incorrect selectors
+    // crawlAliyunAI(),     // Disabled: incorrect selectors
+    // crawlByteDanceAI(),  // Disabled: HTTP 404 error
+    // crawlSenseTime(),    // Disabled: incorrect selectors
+    // crawlMegvii(),       // Disabled: incorrect selectors
+    // crawl4Paradigm(),    // Disabled: incorrect selectors
+    // crawlCloudWalk(),    // Disabled: HTTP 403 anti-scraping
+    // crawliFlytek(),      // Disabled: incorrect selectors
   ]);
   
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
