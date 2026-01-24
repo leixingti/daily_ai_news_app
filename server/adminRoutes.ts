@@ -618,9 +618,9 @@ router.get("/trigger-events-crawler", async (req: Request, res: Response) => {
       });
     }
     
-    // 运行爬虫
-    const { runEventsCrawler } = await import("./eventsCrawler");
-    await runEventsCrawler();
+    // 运行爬虫 (已切换到真实会议爬虫)
+    const { runRealEventsCrawler } = await import("./realEventsCrawler");
+    await runRealEventsCrawler();
     
     // 查询数据库中的会议数量
     const { aiEvents } = await import("../drizzle/schema");
