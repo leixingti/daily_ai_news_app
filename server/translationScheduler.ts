@@ -99,11 +99,12 @@ export async function processAllPendingTranslations(): Promise<void> {
       return;
     }
 
-    // Get all news items with translationStatus = 1 (pending)
+    // Get all news items with translationStatus = 1 (pending) AND region = international
+    const { and } = await import("drizzle-orm");
     const pendingNews = await db
       .select()
       .from(aiNews)
-      .where(eq(aiNews.translationStatus, 1))
+      .where(and(eq(aiNews.translationStatus, 1), eq(aiNews.region, "international")))
       .limit(20); // Process 20 items at a time to avoid overwhelming the API
 
     if (pendingNews.length === 0) {
