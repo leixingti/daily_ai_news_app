@@ -62,6 +62,27 @@ export async function runMigrations() {
     `);
     console.log("[Migration] Translation columns added or already exist");
 
+    // 更新 category enum 类型
+    console.log("[Migration] Updating category enum type...");
+    try {
+      // PostgreSQL 中更新 enum 需要先检查值是否存在
+      const enumCheck = await client.query(`
+        SELECT n.nspname as schema, t.typname as type 
+        FROM pg_type t 
+        JOIN pg_namespace n ON n.oid = t.typnamespace 
+        WHERE t.typname = 'category';
+      `);
+
+      if (enumCheck.rowCount > 0) {
+        // 尝试添加 'manufacturer' 值
+        // 注意：ALTER TYPE ... ADD VALUE 不能在事务块中运行，但这里 pg.Client 默认不在事务中
+        await client.query(`ALTER TYPE category ADD VALUE IF NOT EXISTS 'manufacturer';`);
+        console.log("[Migration] Added 'manufacturer' to category enum");
+      }
+    } catch (enumError) {
+      console.warn("[Migration] Failed to update category enum (it might already exist or not be an enum):", enumError);
+    }
+    
     console.log("[Migration] All migrations completed successfully");
   } catch (error) {
     console.error("[Migration] Migration failed:", error);
