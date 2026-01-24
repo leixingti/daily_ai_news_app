@@ -12,6 +12,7 @@ import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
 import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
 import { initializeNewsExcerptGeneratorSchedule } from "../newsExcerptGenerator";
 import { runAllAICompanyCrawlers } from "../aiCompanyCrawlers";
+import { initializeTranslationSchedule } from "../translationScheduler";
 import adminRoutes from "../adminRoutes";
 import { testRouter } from "../testRouter";
 import fixLinksRouter from "../fixLinksRouter";
@@ -141,6 +142,10 @@ async function startServer() {
       setInterval(() => {
         runAllAICompanyCrawlers();
       }, 10 * 60 * 1000); // Run every 10 minutes
+      
+      // Start translation scheduler
+      console.log("[Server] Starting translation scheduler...");
+      initializeTranslationSchedule();
     }, 30000); // 30 second delay
   });
 }
