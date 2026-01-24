@@ -49,6 +49,20 @@ async function startServer() {
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
+  // Special direct cleanup route to bypass any routing issues
+  app.get("/direct-cleanup-fake-events", async (req, res) => {
+    try {
+      const { getDb } = await import("./db");
+      const { aiEvents } = await import("../drizzle/schema");
+      const { or, like } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) return res.status(500).send("Database connection failed");
+      const result = await db.delete(aiEvents).where(or(like(aiEvents.registrationUrl, "%example.com%"), like(aiEvents.url, "%example.com%")));
+      res.send(`Cleanup successful! Result: ${JSON.stringify(result)}`);
+    } catch (e) {
+      res.status(500).send(`Cleanup failed: ${e}`);
+    }
+  });
   app.use("/api/admin", adminRoutes);
   app.use("/api/test", testRouter);
   app.use("/api/fix", fixLinksRouter);
