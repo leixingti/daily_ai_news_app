@@ -60,6 +60,11 @@ async function startServer() {
   app.use("/api/fix", fixLinksRouter);
   // Crawler endpoint
   app.use(crawlerEndpoint);
+  
+  // Add a simple health check endpoint to verify API routing
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
   // tRPC API
   app.use(
     "/api/trpc",
