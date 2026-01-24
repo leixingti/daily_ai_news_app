@@ -122,9 +122,9 @@ async function batchTranslateNews() {
           await db
             .update(aiNews)
             .set({
-              title: translatedTitle,
-              summary: translatedSummary,
-              content: translatedSummary, // 同时更新 content 字段
+              titleZh: translatedTitle,
+              summaryZh: translatedSummary,
+              fullContentZh: translatedSummary,
               updatedAt: new Date(),
             })
             .where(eq(aiNews.id, news.id));

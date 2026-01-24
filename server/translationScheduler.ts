@@ -58,9 +58,9 @@ async function translateNewsItem(news: any): Promise<void> {
     await db
       .update(aiNews)
       .set({
-        title: translated.title || news.title,
-        summary: translated.summary || news.summary,
-        content: translated.content || news.content,
+        titleZh: translated.title || news.title,
+        summaryZh: translated.summary || news.summary,
+        fullContentZh: translated.content || news.content,
         translationStatus: 2, // 2 = translated
       })
       .where(eq(aiNews.id, news.id));
