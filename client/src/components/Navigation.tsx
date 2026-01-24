@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Calendar, Newspaper, Menu, X } from "lucide-react";
+import { Calendar, Newspaper, Menu, X, Building2 } from "lucide-react";
 import { useState } from "react";
 
 export function Navigation() {
@@ -12,6 +12,7 @@ export function Navigation() {
   const navItems = [
     { href: "/", label: "新闻", icon: Newspaper },
     { href: "/events", label: "AI行业会议", icon: Calendar },
+    { href: "/companies", label: "AI公司目录", icon: Building2 },
   ];
 
   return (
