@@ -44,6 +44,26 @@ const globalCompanies: Company[] = [
   { rank: 28, name: "Replicate", description: "AI模型部署", website: "https://replicate.com", category: "平台" },
   { rank: 29, name: "Together AI", description: "开源大模型平台", website: "https://www.together.ai", category: "平台" },
   { rank: 30, name: "Anthropic", description: "AI安全研究", website: "https://www.anthropic.com", category: "研究" },
+  { rank: 31, name: "Harvey AI", description: "法律AI助手", website: "https://www.harvey.ai", category: "垂直" },
+  { rank: 32, name: "Glean", description: "企业搜索AI", website: "https://www.glean.com", category: "搜索" },
+  { rank: 33, name: "Moveworks", description: "IT支持AI", website: "https://www.moveworks.com", category: "企业" },
+  { rank: 34, name: "Shield AI", description: "国防AI", website: "https://www.shield.ai", category: "垂直" },
+  { rank: 35, name: "Tempus", description: "医疗AI", website: "https://www.tempus.com", category: "医疗" },
+  { rank: 36, name: "Insitro", description: "药物研发AI", website: "https://www.insitro.com", category: "医疗" },
+  { rank: 37, name: "Anysphere", description: "AI编程工具", website: "https://anysphere.co", category: "编程" },
+  { rank: 38, name: "Codeium", description: "AI代码补全", website: "https://codeium.com", category: "编程" },
+  { rank: 39, name: "Tabnine", description: "AI编程助手", website: "https://www.tabnine.com", category: "编程" },
+  { rank: 40, name: "Copy.ai", description: "AI营销文案", website: "https://www.copy.ai", category: "AIGC" },
+  { rank: 41, name: "Descript", description: "AI音视频编辑", website: "https://www.descript.com", category: "AIGC" },
+  { rank: 42, name: "Luma AI", description: "3D AI生成", website: "https://lumalabs.ai", category: "AIGC" },
+  { rank: 43, name: "Pika", description: "AI视频生成", website: "https://pika.art", category: "AIGC" },
+  { rank: 44, name: "Suno", description: "AI音乐生成", website: "https://www.suno.ai", category: "AIGC" },
+  { rank: 45, name: "Udio", description: "AI音乐生成", website: "https://www.udio.com", category: "AIGC" },
+  { rank: 46, name: "Reka AI", description: "多模态AI", website: "https://www.reka.ai", category: "大模型" },
+  { rank: 47, name: "AI21 Labs", description: "企业LLM", website: "https://www.ai21.com", category: "大模型" },
+  { rank: 48, name: "Writer", description: "企业AI写作", website: "https://writer.com", category: "写作" },
+  { rank: 49, name: "You.com", description: "AI搜索引擎", website: "https://you.com", category: "搜索" },
+  { rank: 50, name: "Tome", description: "AI演示文稿", website: "https://tome.app", category: "生产力" },
 ];
 
 const chineseCompanies: Company[] = [
@@ -77,6 +97,26 @@ const chineseCompanies: Company[] = [
   { rank: 28, name: "DeepSeek", nameEn: "DeepSeek", description: "开源大模型", website: "https://www.deepseek.com", category: "大模型" },
   { rank: 29, name: "零一万物", nameEn: "01.AI", description: "Yi大模型", website: "https://www.01.ai", category: "大模型" },
   { rank: 30, name: "秘塔科技", nameEn: "Metaso", description: "AI搜索", website: "https://metaso.cn", category: "搜索" },
+  { rank: 31, name: "万兴科技", nameEn: "Wondershare", description: "AIGC工具", website: "https://www.wondershare.cn", category: "AIGC" },
+  { rank: 32, name: "元戎启行", nameEn: "DeepRoute", description: "自动驾驶", website: "https://www.deeproute.ai", category: "自动驾驶" },
+  { rank: 33, name: "元象", nameEn: "Yuanxiang", description: "AIGC平台", website: "https://www.yuanxiang.ai", category: "AIGC" },
+  { rank: 34, name: "九识智能", nameEn: "9Sense", description: "AI视觉", website: "https://www.9sense.ai", category: "视觉" },
+  { rank: 35, name: "追一科技", nameEn: "Wezhuiyi", description: "对话AI", website: "https://www.wezhuiyi.com", category: "对话" },
+  { rank: 36, name: "澜舟科技", nameEn: "Langboat", description: "NLP大模型", website: "https://www.langboat.com", category: "NLP" },
+  { rank: 37, name: "循环智能", nameEn: "Recurrent AI", description: "销售AI", website: "https://www.rcrai.com", category: "企业" },
+  { rank: 38, name: "衔远科技", nameEn: "Xianyuan", description: "AI芯片", website: "https://www.xianyuan.com", category: "硬件" },
+  { rank: 39, name: "燧原科技", nameEn: "Enflame", description: "AI芯片", website: "https://www.enflame-tech.com", category: "硬件" },
+  { rank: 40, name: "黑芝麻智能", nameEn: "Black Sesame", description: "车载AI芯片", website: "https://www.blacksesame.com", category: "硬件" },
+  { rank: 41, name: "图森未来", nameEn: "TuSimple", description: "自动驾驶卡车", website: "https://www.tusimple.com", category: "自动驾驶" },
+  { rank: 42, name: "Momenta", nameEn: "Momenta", description: "自动驾驶", website: "https://www.momenta.ai", category: "自动驾驶" },
+  { rank: 43, name: "轻舟智航", nameEn: "QCraft", description: "自动驾驶", website: "https://www.qcraft.ai", category: "自动驾驶" },
+  { rank: 44, name: "禾多科技", nameEn: "HoloMatic", description: "自动驾驶", website: "https://www.holomatic.com", category: "自动驾驶" },
+  { rank: 45, name: "推想医疗", nameEn: "Infervision", description: "医疗影像AI", website: "https://www.infervision.com", category: "医疗" },
+  { rank: 46, name: "数坤科技", nameEn: "Shukun", description: "医疗AI", website: "https://www.shukun.net", category: "医疗" },
+  { rank: 47, name: "依图科技", nameEn: "Yitu", description: "视觉AI", website: "https://www.yitutech.com", category: "视觉" },
+  { rank: 48, name: "旷视科技", nameEn: "Megvii", description: "Face++视觉AI", website: "https://www.megvii.com", category: "视觉" },
+  { rank: 49, name: "思必驰", nameEn: "AISpeech", description: "语音AI", website: "https://www.aispeech.com", category: "语音" },
+  { rank: 50, name: "出门问问", nameEn: "Mobvoi", description: "语音AI", website: "https://www.mobvoi.com", category: "语音" },
 ];
 
 export default function AICompanies() {
@@ -134,10 +174,10 @@ export default function AICompanies() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-8">
           <TabsTrigger value="global" className="text-lg">
-            🌍 国际AI公司 Top 30
+            🌍 国际AI公司 Top 50
           </TabsTrigger>
           <TabsTrigger value="china" className="text-lg">
-            🇨🇳 中国AI公司 Top 30
+            🇨🇳 中国AI公司 Top 50
           </TabsTrigger>
         </TabsList>
 
