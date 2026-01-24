@@ -308,6 +308,19 @@ export async function getAiEventById(id: number) {
   }
 }
 
+export async function getAiEventsList(input: any) {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    let query = db.select().from(aiEvents);
+    // Simplified for bundling
+    return await query.limit(input.limit || 30).offset(input.offset || 0);
+  } catch (error) {
+    console.error("[Database] Failed to get events list:", error);
+    return [];
+  }
+}
+
 // Helper function for OR conditions
 function or(...conditions: any[]) {
   return sql`(${sql.join(conditions, sql` OR `)})`
