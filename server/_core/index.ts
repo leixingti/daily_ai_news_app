@@ -114,7 +114,7 @@ async function startServer() {
       runAllAICompanyCrawlers();
       setInterval(() => {
         runAllAICompanyCrawlers();
-      }, 60 * 60 * 1000); // Run every hour
+      }, 10 * 60 * 1000); // Run every 10 minutes
     }, 30000); // 30 second delay
   });
 }
