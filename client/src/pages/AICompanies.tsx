@@ -130,9 +130,9 @@ export default function AICompanies() {
             <CardTitle className="text-lg flex items-center gap-2">
               <span className="text-blue-600 font-bold">#{company.rank}</span>
               <img 
-                src={`https://www.google.com/s2/favicons?domain=${company.website}&sz=32`}
+                src={`https://www.google.com/s2/favicons?domain=${company.website}&sz=64`}
                 alt={`${company.name} logo`}
-                className="w-6 h-6 rounded"
+                className="w-12 h-12 rounded"
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
               <span>{company.name}</span>
