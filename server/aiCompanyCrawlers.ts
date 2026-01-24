@@ -548,6 +548,11 @@ export async function runAllAICompanyCrawlers(): Promise<void> {
     crawlAnthropic(),
     crawlMetaAI(),
     crawlHuggingFace(),
+    crawlMicrosoftAI(),
+    crawlNVIDIAAI(),
+    crawlAWSAI(),
+    crawlCohereAI(),
+    crawlMistralAI(),
   ]);
   
   // Run domestic crawlers
@@ -557,8 +562,451 @@ export async function runAllAICompanyCrawlers(): Promise<void> {
     crawlBaiduAI(),
     crawlAliyunAI(),
     crawlByteDanceAI(),
+    crawlSenseTime(),
+    crawlMegvii(),
+    crawl4Paradigm(),
+    crawlCloudWalk(),
+    crawliFlytek(),
   ]);
   
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
   console.log(`[AI Companies] All crawlers completed in ${duration}s`);
+}
+
+// ============================================================================
+// Additional International AI Companies
+// ============================================================================
+
+/**
+ * Microsoft AI Blog Crawler
+ */
+export async function crawlMicrosoftAI(): Promise<void> {
+  console.log("[Microsoft AI] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://www.microsoft.com/en-us/ai/blog/");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .blog-post, .post-item").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
+      const dateStr = $el.find("time, .date").first().attr("datetime") || $el.find("time, .date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://www.microsoft.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500),
+          content: summary,
+          source: "Microsoft AI",
+          region: "international",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[Microsoft AI] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[Microsoft AI] Crawler failed:", error);
+  }
+}
+
+/**
+ * NVIDIA AI Blog Crawler
+ */
+export async function crawlNVIDIAAI(): Promise<void> {
+  console.log("[NVIDIA AI] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://blogs.nvidia.com/blog/category/deep-learning/");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .post, .blog-post").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .entry-title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .excerpt, .entry-summary").first().text().trim();
+      const dateStr = $el.find("time, .date").first().attr("datetime") || $el.find("time, .date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://blogs.nvidia.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500),
+          content: summary,
+          source: "NVIDIA AI",
+          region: "international",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[NVIDIA AI] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[NVIDIA AI] Crawler failed:", error);
+  }
+}
+
+/**
+ * AWS AI Blog Crawler
+ */
+export async function crawlAWSAI(): Promise<void> {
+  console.log("[AWS AI] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://aws.amazon.com/blogs/aws/category/artificial-intelligence/");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .blog-post, .post").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .blog-post-title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .blog-post-excerpt").first().text().trim();
+      const dateStr = $el.find("time, .blog-post-date").first().attr("datetime") || $el.find("time, .blog-post-date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://aws.amazon.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500),
+          content: summary,
+          source: "AWS AI",
+          region: "international",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[AWS AI] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[AWS AI] Crawler failed:", error);
+  }
+}
+
+/**
+ * Cohere AI Blog Crawler
+ */
+export async function crawlCohereAI(): Promise<void> {
+  console.log("[Cohere AI] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://cohere.com/blog");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .blog-card, .post-card").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .excerpt, .description").first().text().trim();
+      const dateStr = $el.find("time, .date").first().attr("datetime") || $el.find("time, .date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://cohere.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500),
+          content: summary,
+          source: "Cohere",
+          region: "international",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[Cohere AI] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[Cohere AI] Crawler failed:", error);
+  }
+}
+
+/**
+ * Mistral AI News Crawler
+ */
+export async function crawlMistralAI(): Promise<void> {
+  console.log("[Mistral AI] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://mistral.ai/news");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .news-item, .post").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .excerpt, .description").first().text().trim();
+      const dateStr = $el.find("time, .date").first().attr("datetime") || $el.find("time, .date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://mistral.ai${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500),
+          content: summary,
+          source: "Mistral AI",
+          region: "international",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[Mistral AI] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[Mistral AI] Crawler failed:", error);
+  }
+}
+
+// ============================================================================
+// Additional Domestic AI Companies
+// ============================================================================
+
+/**
+ * SenseTime (商汤科技) News Crawler
+ */
+export async function crawlSenseTime(): Promise<void> {
+  console.log("[商汤科技] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://www.sensetime.com/cn/news-press-release");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .news-item, .press-item").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
+      const dateStr = $el.find("time, .date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://www.sensetime.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500),
+          content: summary,
+          source: "商汤科技",
+          region: "domestic",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[商汤科技] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[商汤科技] Crawler failed:", error);
+  }
+}
+
+/**
+ * Megvii (旷视科技) News Crawler
+ */
+export async function crawlMegvii(): Promise<void> {
+  console.log("[旷视科技] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://www.megvii.com/news/");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .news-item, .news-card").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
+      const dateStr = $el.find("time, .date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://www.megvii.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500),
+          content: summary,
+          source: "旷视科技",
+          region: "domestic",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[旷视科技] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[旷视科技] Crawler failed:", error);
+  }
+}
+
+/**
+ * 4Paradigm (第四范式) News Crawler
+ */
+export async function crawl4Paradigm(): Promise<void> {
+  console.log("[第四范式] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://www.4paradigm.com/about/news.html");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .news-item, .news-list-item").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .title, a").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
+      const dateStr = $el.find("time, .date, .time").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://www.4paradigm.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500) || title,
+          content: summary || title,
+          source: "第四范式",
+          region: "domestic",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[第四范式] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[第四范式] Crawler failed:", error);
+  }
+}
+
+/**
+ * CloudWalk (云从科技) News Crawler
+ */
+export async function crawlCloudWalk(): Promise<void> {
+  console.log("[云从科技] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://www.cloudwalk.com/");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .news-item, .news-card").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
+      const dateStr = $el.find("time, .date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://www.cloudwalk.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500) || title,
+          content: summary || title,
+          source: "云从科技",
+          region: "domestic",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[云从科技] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[云从科技] Crawler failed:", error);
+  }
+}
+
+/**
+ * iFlytek (科大讯飞) News Crawler
+ */
+export async function crawliFlytek(): Promise<void> {
+  console.log("[科大讯飞] Starting crawler...");
+  
+  try {
+    const html = await fetchHTML("https://www.iflytek.com/");
+    const $ = cheerio.load(html);
+    
+    const newsItems: NewsItem[] = [];
+    
+    $("article, .news-item, .news-list-item").each((_, element) => {
+      const $el = $(element);
+      const title = $el.find("h2, h3, .title").first().text().trim();
+      const url = $el.find("a").first().attr("href") || "";
+      const summary = $el.find("p, .summary, .excerpt").first().text().trim();
+      const dateStr = $el.find("time, .date").first().text();
+      
+      if (title && url) {
+        newsItems.push({
+          title,
+          sourceUrl: url.startsWith("http") ? url : `https://www.iflytek.com${url}`,
+          publishedAt: dateStr ? new Date(dateStr) : new Date(),
+          summary: summary.substring(0, 500) || title,
+          content: summary || title,
+          source: "科大讯飞",
+          region: "domestic",
+          category: "manufacturer" as "manufacturer",
+        });
+      }
+    });
+    
+    for (const news of newsItems.slice(0, 10)) {
+      await saveNews(news);
+    }
+    
+    console.log(`[科大讯飞] Crawled ${newsItems.length} news items`);
+  } catch (error) {
+    console.error("[科大讯飞] Crawler failed:", error);
+  }
 }
