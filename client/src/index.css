@@ -77,8 +77,8 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.623 0.214 259.815);
   
-  /* 增大基础字体大小 */
-  font-size: 32px;
+  /* 调整基础字体大小（缩小30%） */
+  font-size: 22.4px;
 }
 
 .dark {
