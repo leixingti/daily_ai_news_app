@@ -5,8 +5,8 @@
 
 import { Router, Request, Response } from "express";
 import { getDb } from "./db";
-import { aiNews } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { aiNews, aiEvents } from "../drizzle/schema";
+import { eq, or, like } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 import { extractArticleContent } from "./contentExtractor";
 import translate from 'translate-google';
@@ -654,6 +654,42 @@ router.get("/status", (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     message: "Admin API is running"
   });
+});
+
+/**
+ * GET /api/admin/cleanup-fake-events
+ * 清理数据库中的假会议数据（包含 example.com 的记录）
+ */
+router.get("/cleanup-fake-events", async (req: Request, res: Response) => {
+  try {
+    console.log("[AdminAPI] Cleanup fake events triggered");
+    const db = await getDb();
+    if (!db) {
+      return res.status(500).json({ success: false, message: "Database connection failed" });
+    }
+
+    const result = await db
+      .delete(aiEvents)
+      .where(
+        or(
+          like(aiEvents.registrationUrl, "%example.com%"),
+          like(aiEvents.url, "%example.com%")
+        )
+      );
+
+    console.log("[AdminAPI] Cleanup fake events completed");
+    res.json({ 
+      success: true, 
+      message: "Fake events cleaned up successfully",
+      result 
+    });
+  } catch (error) {
+    console.error("[AdminAPI] Cleanup failed:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : "Unknown error" 
+    });
+  }
 });
 
 export default router;
