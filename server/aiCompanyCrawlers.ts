@@ -19,7 +19,7 @@ interface NewsItem {
   content: string;
   source: string;
   region: "international" | "domestic";
-  category: "tech" | "product" | "industry" | "manufacturer";
+  category: "manufacturer" | "product" | "industry" | "manufacturer";
 }
 
 /**
@@ -289,7 +289,7 @@ export async function crawlHuggingFace(): Promise<void> {
           content: summary,
           source: "Hugging Face",
           region: "international",
-          category: "AI Tools",
+          category: "manufacturer",
         });
       }
     });
@@ -337,7 +337,7 @@ export async function crawlZhipuAI(): Promise<void> {
           content: summary,
           source: "智谱AI",
           region: "domestic",
-          category: "AI大模型",
+          category: "manufacturer",
         });
       }
     });
@@ -381,7 +381,7 @@ export async function crawlMoonshot(): Promise<void> {
           content: summary,
           source: "月之暗面",
           region: "domestic",
-          category: "AI大模型",
+          category: "manufacturer",
         });
       }
     });
@@ -425,7 +425,7 @@ export async function crawlBaiduAI(): Promise<void> {
           content: summary,
           source: "百度AI",
           region: "domestic",
-          category: "AI大模型",
+          category: "manufacturer",
         });
       }
     });
@@ -470,7 +470,7 @@ export async function crawlAliyunAI(): Promise<void> {
           content: summary,
           source: "阿里云AI",
           region: "domestic",
-          category: "AI大模型",
+          category: "manufacturer",
         });
       }
     });
@@ -514,7 +514,7 @@ export async function crawlByteDanceAI(): Promise<void> {
           content: summary,
           source: "字节跳动AI",
           region: "domestic",
-          category: "AI大模型",
+          category: "manufacturer",
         });
       }
     });
