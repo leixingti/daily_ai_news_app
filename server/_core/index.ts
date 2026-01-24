@@ -52,6 +52,20 @@ async function startServer() {
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
+
+  // Run one-time cleanup on startup
+  (async () => {
+    try {
+      console.log("[Startup] Running one-time cleanup for fake events...");
+      const db = await getDb();
+      if (db) {
+        const result = await db.delete(aiEvents).where(or(like(aiEvents.registrationUrl, "%example.com%"), like(aiEvents.url, "%example.com%")));
+        console.log(`[Startup] Cleanup successful: ${JSON.stringify(result)}`);
+      }
+    } catch (e) {
+      console.error("[Startup] Cleanup failed:", e);
+    }
+  })();
   // Special direct cleanup route to bypass any routing issues
   app.get("/direct-cleanup-fake-events", async (req, res) => {
     try {
