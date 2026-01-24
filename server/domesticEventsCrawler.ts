@@ -6,7 +6,7 @@
 
 import * as cheerio from "cheerio";
 import { getDb } from "./db";
-import { aiEvents } from "@db/schema";
+import { aiEvents } from "../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 
 interface DomesticEvent {
