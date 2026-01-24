@@ -7,9 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { startEventsCrawlerSchedule } from "../eventsCrawler";
 import { initializeRealEventsCrawlerSchedule } from "../realEventsCrawler";
-import { initializeDomesticEventsCrawlerSchedule } from "../domesticEventsCrawler";
 import { initializeRealApiCrawlerSchedule } from "../realApiCrawler";
 import { initializeRSSNewsCrawlerSchedule } from "../rssNewsCrawler";
 import { initializeNewsExcerptGeneratorSchedule } from "../newsExcerptGenerator";
@@ -91,14 +89,8 @@ async function startServer() {
     setTimeout(() => {
       console.log("[Server] Starting crawlers after 30 second delay...");
       
-      // Start events crawler schedule (disabled - using real events crawler instead)
-      // startEventsCrawlerSchedule();
-      
-      // Start real events crawler schedule
+      // Start real events crawler schedule (only real events, fake crawlers removed)
       initializeRealEventsCrawlerSchedule();
-      
-      // Start domestic events crawler schedule
-      initializeDomesticEventsCrawlerSchedule();
       
       // Start real API crawler schedule
       initializeRealApiCrawlerSchedule();

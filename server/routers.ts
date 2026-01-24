@@ -4,7 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { eventsCrawlerRouter } from "./eventsCrawlerRouter";
+// Fake event crawler router removed
 
 export const appRouter = router({
   system: systemRouter,
@@ -325,7 +325,7 @@ export const appRouter = router({
   }),
 
   // ==================== Events Crawler Management ====================
-  crawler: eventsCrawlerRouter,
+  // Fake event crawler router removed - only using real event crawler
 });
 
 export type AppRouter = typeof appRouter;
