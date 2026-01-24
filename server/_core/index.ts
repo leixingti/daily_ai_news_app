@@ -17,6 +17,9 @@ import { testRouter } from "../testRouter";
 import fixLinksRouter from "../fixLinksRouter";
 import { runMigrations } from "../migrate";
 import { crawlerEndpoint } from "../crawlerEndpoint";
+import { getDb } from "../db";
+import { aiEvents } from "../../drizzle/schema";
+import { or, like } from "drizzle-orm";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -52,9 +55,6 @@ async function startServer() {
   // Special direct cleanup route to bypass any routing issues
   app.get("/direct-cleanup-fake-events", async (req, res) => {
     try {
-      const { getDb } = await import("./db");
-      const { aiEvents } = await import("../drizzle/schema");
-      const { or, like } = await import("drizzle-orm");
       const db = await getDb();
       if (!db) return res.status(500).send("Database connection failed");
       const result = await db.delete(aiEvents).where(or(like(aiEvents.registrationUrl, "%example.com%"), like(aiEvents.url, "%example.com%")));
