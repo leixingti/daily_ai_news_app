@@ -13,12 +13,13 @@ const rssParser = new Parser();
 
 interface NewsItem {
   title: string;
-  url: string;
+  sourceUrl: string;
   publishedAt: Date;
   summary: string;
+  content: string;
   source: string;
   region: "international" | "domestic";
-  category: string;
+  category: "tech" | "product" | "industry" | "event";
 }
 
 /**
@@ -61,7 +62,7 @@ async function saveNews(news: NewsItem): Promise<void> {
     const existing = await db
       .select()
       .from(aiNews)
-      .where(eq(aiNews.url, news.url))
+      .where(eq(aiNews.sourceUrl, news.sourceUrl))
       .limit(1);
 
     if (existing.length > 0) {
@@ -69,17 +70,21 @@ async function saveNews(news: NewsItem): Promise<void> {
       return;
     }
 
+    // Generate content hash
+    const contentHash = Buffer.from(news.sourceUrl).toString("hex").substring(0, 64);
+
     // Insert new news
     await db.insert(aiNews).values({
       title: news.title,
-      url: news.url,
+      sourceUrl: news.sourceUrl,
       publishedAt: news.publishedAt,
-      summary: news.summary,
+      summary: news.summary.substring(0, 500),
+      content: news.content || news.summary,
       source: news.source,
       region: news.region,
       category: news.category,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      contentHash: contentHash,
+      translationStatus: news.region === "international" ? 1 : 0,
     });
 
     console.log(`[DB] Saved news: ${news.title}`);
@@ -104,12 +109,13 @@ export async function crawlOpenAI(): Promise<void> {
     for (const item of items.slice(0, 10)) {
       const news: NewsItem = {
         title: item.title || "",
-        url: item.link || "",
+        sourceUrl: item.link || "",
         publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
         summary: item.contentSnippet || item.content || "",
+        content: item.content || item.contentSnippet || "",
         source: "OpenAI",
         region: "international",
-        category: "AI Research",
+        category: "tech" as "tech",
       };
       
       await saveNews(news);
@@ -145,12 +151,13 @@ export async function crawlDeepMind(): Promise<void> {
       if (title && url) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://deepmind.google${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://deepmind.google${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "Google DeepMind",
           region: "international",
-          category: "AI Research",
+          category: "tech" as "tech",
         });
       }
     });
@@ -188,12 +195,13 @@ export async function crawlAnthropic(): Promise<void> {
       if (title && url) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://www.anthropic.com${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://www.anthropic.com${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "Anthropic",
           region: "international",
-          category: "AI Research",
+          category: "tech" as "tech",
         });
       }
     });
@@ -231,12 +239,13 @@ export async function crawlMetaAI(): Promise<void> {
       if (title && url) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://ai.meta.com${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://ai.meta.com${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "Meta AI",
           region: "international",
-          category: "AI Research",
+          category: "tech" as "tech",
         });
       }
     });
@@ -274,9 +283,10 @@ export async function crawlHuggingFace(): Promise<void> {
       if (title && url && !url.includes("#")) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://huggingface.co${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://huggingface.co${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "Hugging Face",
           region: "international",
           category: "AI Tools",
@@ -321,9 +331,10 @@ export async function crawlZhipuAI(): Promise<void> {
       if (title && url) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://www.zhipuai.cn${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://www.zhipuai.cn${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "智谱AI",
           region: "domestic",
           category: "AI大模型",
@@ -364,9 +375,10 @@ export async function crawlMoonshot(): Promise<void> {
       if (title && url) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://www.moonshot.cn${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://www.moonshot.cn${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "月之暗面",
           region: "domestic",
           category: "AI大模型",
@@ -407,9 +419,10 @@ export async function crawlBaiduAI(): Promise<void> {
       if (title && url) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://ai.baidu.com${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://ai.baidu.com${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "百度AI",
           region: "domestic",
           category: "AI大模型",
@@ -451,9 +464,10 @@ export async function crawlAliyunAI(): Promise<void> {
       if (title && url) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://www.aliyun.com${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://www.aliyun.com${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "阿里云AI",
           region: "domestic",
           category: "AI大模型",
@@ -494,9 +508,10 @@ export async function crawlByteDanceAI(): Promise<void> {
       if (title && url) {
         newsItems.push({
           title,
-          url: url.startsWith("http") ? url : `https://ailab.bytedance.com${url}`,
+          sourceUrl: url.startsWith("http") ? url : `https://ailab.bytedance.com${url}`,
           publishedAt: dateStr ? new Date(dateStr) : new Date(),
           summary: summary.substring(0, 500),
+          content: summary,
           source: "字节跳动AI",
           region: "domestic",
           category: "AI大模型",
