@@ -38,34 +38,23 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
-  // Run database migrations before starting server
-  try {
-    await runMigrations();
-  } catch (error) {
-    console.error("[Server] Migration failed, but continuing...", error);
-  }
-
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
+
+  // 1. Basic middleware
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  // OAuth callback under /api/oauth/callback
-  registerOAuthRoutes(app);
-  // Admin routes under /api/admin
-  app.use("/api/admin", adminRoutes);
-  // Test routes under /api/test
-  app.use("/api/test", testRouter);
-  // Fix links routes under /api/fix
-  app.use("/api/fix", fixLinksRouter);
-  // Crawler endpoint
-  app.use(crawlerEndpoint);
-  
-  // Add a simple health check endpoint to verify API routing
+
+  // 2. API Routes (MUST be before static/Vite middleware)
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
-  // tRPC API
+  app.use("/api/admin", adminRoutes);
+  app.use("/api/test", testRouter);
+  app.use("/api/fix", fixLinksRouter);
+  app.use(crawlerEndpoint);
+  registerOAuthRoutes(app);
+  
   app.use(
     "/api/trpc",
     createExpressMiddleware({
@@ -73,19 +62,23 @@ async function startServer() {
       createContext,
     })
   );
-  const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
 
-  if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
-  }
-
-  // development mode uses Vite, production mode uses static files
+  // 3. Static/Vite middleware (Catch-all for SPA)
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
+
+  // 4. Database migrations
+  try {
+    await runMigrations();
+  } catch (error) {
+    console.error("[Server] Migration failed, but continuing...", error);
+  }
+
+  const preferredPort = parseInt(process.env.PORT || "3000");
+  const port = await findAvailablePort(preferredPort);
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
