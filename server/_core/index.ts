@@ -53,7 +53,7 @@ async function startServer() {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
-  // Run one-time cleanup on startup
+  // Run one-time cleanup and initial crawl on startup
   (async () => {
     try {
       console.log("[Startup] Running one-time cleanup for fake events...");
@@ -62,8 +62,16 @@ async function startServer() {
         const result = await db.delete(aiEvents).where(or(like(aiEvents.registrationUrl, "%example.com%"), like(aiEvents.url, "%example.com%")));
         console.log(`[Startup] Cleanup successful: ${JSON.stringify(result)}`);
       }
+      
+      console.log("[Startup] Running initial AI company crawl...");
+      const { runAllAICompanyCrawlers } = await import("../aiCompanyCrawlers");
+      runAllAICompanyCrawlers().then(() => {
+        console.log("[Startup] Initial AI company crawl completed.");
+      }).catch(err => {
+        console.error("[Startup] Initial AI company crawl failed:", err);
+      });
     } catch (e) {
-      console.error("[Startup] Cleanup failed:", e);
+      console.error("[Startup] Startup tasks failed:", e);
     }
   })();
   // Special direct cleanup route to bypass any routing issues
