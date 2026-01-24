@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { runEventsCrawler } from "./eventsCrawler";
+import { runRealEventsCrawler as runEventsCrawler } from "./realEventsCrawler";
 
 export const crawlerEndpoint = Router();
 
