@@ -189,6 +189,12 @@ export default function NewsDetail() {
             <span>{formatDate(news.publishedAt)}</span>
             <span>•</span>
             <span>{news.source}</span>
+            {news.region === "international" && news.fullContentZh && (
+              <>
+                <span>•</span>
+                <span className="text-blue-600">🌐 中文翻译</span>
+              </>
+            )}
           </div>
 
           {/* 正文 - 使用 Markdown 渲染 */}

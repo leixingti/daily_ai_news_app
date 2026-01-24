@@ -350,7 +350,7 @@ export default function Home() {
                             </div>
                             {/* 查看全文和原文链接 */}
                             <div className="flex items-center gap-3">
-                              {news.content && news.content.length > news.summary.length && (
+                              {displayContent && displayContent.length > displaySummary.length && (
                                 <a
                                   href={`/news/${news.id}`}
                                   target="_blank"
